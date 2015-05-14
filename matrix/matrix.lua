@@ -4,7 +4,9 @@ function nerv.FloatMatrix:__tostring__()
     local i = 0
     local strt = {}
     for row = 0, nrow - 1 do
+--        local rp = self[row]
         for col = 0, ncol - 1 do
+--            table.insert(strt, string.format("%f ", rp[col]))
             table.insert(strt, string.format("%f ", self:get_elem(i)))
             i = i + 1
         end

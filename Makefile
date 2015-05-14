@@ -1,7 +1,7 @@
 .PHONY: all clean luajit
 OBJS := oop_example.o nerv.o luaT.o common.o matrix/matrix.o matrix/init.o
 LIBS := libnerv.so
-LUA_LIBS := matrix/matrix.lua
+LUA_LIBS := matrix/matrix.lua nerv.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
 LDFLAGS := -L luajit-2.0/build/lib/ -llua -lm
 CFLAGS :=
