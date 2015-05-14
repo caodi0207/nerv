@@ -1,2 +1,2 @@
 require 'libnerv'
-require 'matrix'
+require 'matrix.init'

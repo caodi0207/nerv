@@ -3,7 +3,7 @@
 #include "matrix.h"
 
 extern const char *nerv_matrix_tname;
-const char *nerv_float_matrix_tname = "nerv.FloatMatrix";
+extern const char *nerv_float_matrix_(tname);
 
 void nerv_float_matrix_(data_free)(Matrix *self) {
     if (--(*self->data_ref) == 0)
@@ -24,12 +24,12 @@ int nerv_float_matrix_(new)(lua_State *L) {
     self->data_ref = (long *)malloc(sizeof(long));
     *self->data_ref = 0;
     nerv_float_matrix_(data_retain)(self);
-    luaT_pushudata(L, self, nerv_float_matrix_tname);
+    luaT_pushudata(L, self, nerv_float_matrix_(tname));
     return 1;
 }
 
 int nerv_float_matrix_(destroy)(lua_State *L) {
-    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_tname);
+    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
     nerv_float_matrix_(data_free)(self);
     return 0;
 }
@@ -50,7 +50,7 @@ static Matrix *nerv_float_matrix_(getrow)(Matrix *self, int row) {
 }
 
 static int nerv_float_matrix_(newindex)(lua_State *L) {
-    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_tname);
+    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
     if (lua_isnumber(L, 2))
     {
         int idx = luaL_checkinteger(L, 2);
@@ -74,7 +74,7 @@ static int nerv_float_matrix_(newindex)(lua_State *L) {
 
 
 static int nerv_float_matrix_(index)(lua_State *L) {
-    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_tname);
+    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
     if (lua_isnumber(L, 2))
     {
         int idx = luaL_checkinteger(L, 2);
@@ -88,7 +88,7 @@ static int nerv_float_matrix_(index)(lua_State *L) {
         {
             if (idx < 0 || idx >= self->nrow)
                 nerv_error(L, "index must be within range [0, %d)", self->nrow);
-            luaT_pushudata(L, nerv_float_matrix_(getrow)(self, idx), nerv_float_matrix_tname);
+            luaT_pushudata(L, nerv_float_matrix_(getrow)(self, idx), nerv_float_matrix_(tname));
         }
         lua_pushboolean(L, 1);
         return 2;
@@ -101,13 +101,13 @@ static int nerv_float_matrix_(index)(lua_State *L) {
 }
 
 static int nerv_float_matrix_(ncol)(lua_State *L) {
-    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_tname);
+    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
     lua_pushinteger(L, self->ncol);
     return 1;
 }
 
 static int nerv_float_matrix_(nrow)(lua_State *L) {
-    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_tname);
+    Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
     lua_pushinteger(L, self->nrow);
     return 1;
 }
@@ -124,7 +124,7 @@ static const luaL_Reg nerv_float_matrix_(methods)[] = {
 };
 
 void nerv_float_matrix_(init)(lua_State *L) {
-    luaT_newmetatable(L, nerv_float_matrix_tname, nerv_matrix_tname,
+    luaT_newmetatable(L, nerv_float_matrix_(tname), nerv_matrix_tname,
                         nerv_float_matrix_(new), nerv_float_matrix_(destroy), NULL);
     luaL_register(L, NULL, nerv_float_matrix_(methods));
     lua_pop(L, 1);
