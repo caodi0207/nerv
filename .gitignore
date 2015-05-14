@@ -1,0 +1,3 @@
+*.o
+libnerv.so
+build/
