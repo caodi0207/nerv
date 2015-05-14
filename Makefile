@@ -1,8 +1,8 @@
 .PHONY: all clean luajit
 OBJS := oop_example.o nerv.o luaT.o
 LIBS := libnerv.so
-INCLUDE := -I build/luaJIT/include/luajit-2.0/ -DLUA_USE_APICHECK
-#LDFLAGS := -L luajit-2.0/build/lib/ -llua -lm
+INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
+LDFLAGS := -L luajit-2.0/build/lib/ -llua -lm
 OBJ_DIR := build/objs
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 LIBS := $(addprefix $(OBJ_DIR)/,$(LIBS))
