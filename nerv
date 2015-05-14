@@ -1,2 +1,2 @@
 #!/bin/bash
-exec 'build/luaJIT/bin/luajit' -e "package.cpath=\"${PWD}/build/objs/?.so\"" -e "require 'libnerv' " "$@"
+exec 'build/luajit-2.0/bin/luajit' -e "package.cpath=\"${PWD}/build/objs/?.so\"" -e "require 'libnerv' " "$@"
