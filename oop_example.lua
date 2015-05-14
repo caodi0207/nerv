@@ -1,4 +1,4 @@
-a = nerv.point()
+a = nerv.Point()
 print(a:get_sinx())
 a:set_x(3.14)
 print(a:get_sinx())

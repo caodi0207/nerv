@@ -6,32 +6,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const char *point_tname = "nerv.Point";
+
 typedef struct {
     double x, y;
     int arr[100];
 } Point;
 
 static int point_get_sinx (lua_State *L) {
-    Point *p = luaT_checkudata(L, 1, "nerv.point");
+    Point *p = luaT_checkudata(L, 1, point_tname);
     lua_pushnumber(L, sin(p->x));
     return 1;
 }
 
 static int point_set_x (lua_State *L) {
-    Point *p = luaT_checkudata(L, 1, "nerv.point");
+    Point *p = luaT_checkudata(L, 1, point_tname);
     p->x = luaL_checknumber(L, 2);
     return 0;
 }
 
 
 static int point_get_y(lua_State *L) {
-    Point *p = luaT_checkudata(L, 1, "nerv.point");
+    Point *p = luaT_checkudata(L, 1, point_tname);
     lua_pushnumber(L, sin(p->x));
     return 1;
 }
 
 static int point_newindex(lua_State *L) {
-    Point *p = luaT_checkudata(L, 1, "nerv.point");
+    Point *p = luaT_checkudata(L, 1, point_tname);
     if (lua_isnumber(L, 2))
     {
         int d = luaL_checkinteger(L, 2);
@@ -49,7 +51,7 @@ static int point_newindex(lua_State *L) {
 }
 
 static int point_index(lua_State *L) {
-    Point *p = luaT_checkudata(L, 1, "nerv.point");
+    Point *p = luaT_checkudata(L, 1, point_tname);
     if (lua_isnumber(L, 2))
     {
         int d = luaL_checkinteger(L, 2);
@@ -69,7 +71,7 @@ int point_new(lua_State *L) {
     Point *self = (Point *)malloc(sizeof(Point));
     self->x = 0;
     self->y = 0;
-    luaT_pushudata(L, self, "nerv.point");
+    luaT_pushudata(L, self, point_tname);
     return 1;
 }
 
@@ -83,7 +85,7 @@ static const luaL_Reg point[] = {
 };
 
 void nerv_point_init(lua_State *L) {
-    luaT_newmetatable(L, "nerv.point", NULL, point_new, NULL, NULL);
+    luaT_newmetatable(L, "nerv.Point", NULL, point_new, NULL, NULL);
     luaL_register(L, NULL, point);
     lua_pop(L, 1);
 }
