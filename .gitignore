@@ -1,3 +1,4 @@
 *.o
-libnerv.so
 build/
+*.swp
+*.swo

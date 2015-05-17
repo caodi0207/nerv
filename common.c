@@ -16,4 +16,12 @@ int nerv_error(lua_State *L, const char *err_mesg_fmt, ...) {
 int nerv_error_method_not_implemented(lua_State *L) {
     return nerv_error(L, "method not implemented"); 
 }
+
+void luaN_append_methods(lua_State *L, const luaL_Reg *mlist) {
+    for (; mlist->func; mlist++)
+    {
+        lua_pushcfunction(L, mlist->func);
+        lua_setfield(L, -2, mlist->name);
+    }
+}
 #endif

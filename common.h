@@ -7,3 +7,4 @@
 
 int nerv_error(lua_State *L, const char *err_mesg_fmt, ...); 
 int nerv_error_method_not_implemented(lua_State *L);
+void luaN_append_methods(lua_State *L, const luaL_Reg *mlist);

@@ -3,7 +3,10 @@ OBJS := oop_example.o nerv.o luaT.o common.o matrix/matrix.o matrix/cumatrix.o m
 LIBS := libnerv.so
 LUA_LIBS := matrix/init.lua nerv.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
-LDFLAGS := -L luajit-2.0/build/lib/ -llua -lm
+CUDA_BASE := /usr/local/cuda-6.5
+CUDA_INCLUDE := -I $(CUDA_BASE)/include/
+INCLUDE += $(CUDA_INCLUDE)
+LDFLAGS := -L$(CUDA_BASE)/lib64/  -Wl,-rpath=$(CUDA_BASE)/lib64/ -lcudart -lcublas
 CFLAGS :=
 OBJ_DIR := build/objs
 LUA_DIR := build/lua
@@ -30,7 +33,7 @@ $(LUA_DIR)/%.lua: %.lua
 $(OBJ_DIR)/luaT.o:
 	gcc -c -o $@ luaT/luaT.c $(INCLUDE) -fPIC
 $(LIBS): $(OBJS)
-	gcc -shared -o $@ $(OBJS)
+	gcc -shared -o $@ $(OBJS) $(LDFLAGS)
 clean:
 	-rm -rf $(OBJ_DIR)
 	-rm -rf $(LUA_DIR)

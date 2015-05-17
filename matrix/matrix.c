@@ -1,11 +1,21 @@
 #define MATRIX_DATA_FREE(ptr) free(ptr)
-#define MATRIX_DATA_ALLOC(size) malloc(size)
+#define MATRIX_DATA_ALLOC(dptr, stride, width, height) host_float_array_alloc(dptr, stride, width, height)
 #define MATRIX_DATA_STRIDE(ncol) (sizeof(float) * (ncol))
-#define MATRIX_GENERIC
+#define MATRIX_DATA_WRITE(data, idx, val) (data[idx] = val)
+#define MATRIX_DATA_READ(data, idx) (data[idx])
+#define NERV_GENERIC_MATRIX
 #define nerv_float_matrix_(NAME) nerv_float_matrix_host_ ## NAME
-#include "generic/matrix.c"
+#include "../common.h"
+#include "generic/matrix.h"
 
 const char *nerv_float_matrix_(tname) = "nerv.FloatMatrix";
+
+static void host_float_array_alloc(float **dptr, long *stride,
+                                    long width, long height) {
+    *dptr = (float *)malloc(width * height);
+    *stride = width;
+}
+
 int nerv_float_matrix_(get_elem)(lua_State *L) {
     Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
     int idx = luaL_checkinteger(L, 2);
@@ -25,3 +35,5 @@ int nerv_float_matrix_(set_elem)(lua_State *L) {
     self->data.f[idx] = v;
     return 0;
 }
+
+#include "generic/matrix.c"
