@@ -25,3 +25,4 @@ d[1][1] = 2
 d[2][2] = 3
 print(d)
 print(t * d)
+print(t:sigmoid())

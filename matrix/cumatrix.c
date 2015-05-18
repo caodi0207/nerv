@@ -7,6 +7,7 @@
 #define nerv_float_matrix_(NAME) nerv_float_matrix_cuda_ ## NAME
 #include "../common.h"
 #include "generic/matrix.h"
+#include "cukernel.h"
 #include "cuda.h"
 #include "driver_types.h"
 #include "cublas_v2.h"
@@ -56,9 +57,18 @@ static int nerv_float_matrix_(mul)(lua_State *L) {
     return 1;
 }
 
+static int nerv_float_matrix_(sigmoid)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
+    Matrix *b = nerv_float_matrix_(new_)(a->nrow, a->ncol);
+    cuda_sigmoid(a, b);
+    luaT_pushudata(L, b, nerv_float_matrix_(tname));
+    return 1;
+}
+
 static const luaL_Reg nerv_float_matrix_(extra_methods)[] = {
     {"__add__", nerv_float_matrix_(add)},
     {"__mul__", nerv_float_matrix_(mul)},
+    {"sigmoid", nerv_float_matrix_(sigmoid)},
     {NULL, NULL}
 };
 
