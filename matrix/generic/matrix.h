@@ -2,7 +2,7 @@
 #define NERV_GENERIC_MATRIX_H
 
 typedef struct Matrix {
-    long stride;              /* size of a row */
+    size_t stride;              /* size of a row */
     long ncol, nrow, nmax;    /* dimension of the matrix */
     union {
         float *f;

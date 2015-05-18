@@ -10,7 +10,7 @@
 
 const char *nerv_float_matrix_(tname) = "nerv.FloatMatrix";
 
-static void host_float_array_alloc(float **dptr, long *stride,
+static void host_float_array_alloc(float **dptr, size_t *stride,
                                     long width, long height) {
     *dptr = (float *)malloc(width * height);
     *stride = width;
@@ -29,7 +29,6 @@ int nerv_float_matrix_(set_elem)(lua_State *L) {
     Matrix *self = luaT_checkudata(L, 1, nerv_float_matrix_(tname));
     int idx = luaL_checkinteger(L, 2);
     float v = luaL_checknumber(L, 3);
-    long upper = self->nrow * self->ncol;
     if (idx < 0 || idx >= self->nmax)
         nerv_error(L, "index must be within range [0, %d)", self->nmax);
     self->data.f[idx] = v;

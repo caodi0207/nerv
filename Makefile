@@ -7,7 +7,7 @@ CUDA_BASE := /usr/local/cuda-6.5
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
 INCLUDE += $(CUDA_INCLUDE)
 LDFLAGS := -L$(CUDA_BASE)/lib64/  -Wl,-rpath=$(CUDA_BASE)/lib64/ -lcudart -lcublas
-CFLAGS :=
+CFLAGS := -Wall -Wextra
 OBJ_DIR := build/objs
 LUA_DIR := build/lua
 NVCC := $(CUDA_BASE)/bin/nvcc
@@ -30,7 +30,7 @@ $(OBJ_DIR)/%.o: %.c
 $(OBJ_DIR)/matrix/%.o: matrix/%.c
 	gcc -c -o $@ $< $(INCLUDE) -fPIC $(CFLAGS)
 $(OBJ_DIR)/matrix/cukernel.o: matrix/cukernel.cu
-	$(NVCC) -c -o $@ $< -Xcompiler -fPIC $(INCLUDE) $(CFLAGS)
+	$(NVCC) -c -o $@ $< -Xcompiler -fPIC $(INCLUDE)
 $(LUA_DIR)/%.lua: %.lua
 	cp $< $@
 $(OBJ_DIR)/luaT.o:
