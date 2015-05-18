@@ -84,6 +84,7 @@ __global__ void block_reduce_max(const float *input, float *output,
 }
 
 extern "C" {
+#include "cukernel.h"
     void cuda_sigmoid(const Matrix *a, Matrix *b) {
         dim3 threadsPerBlock(CUDA_THREADS_N,
                 CUDA_THREADS_N);
@@ -106,7 +107,7 @@ extern "C" {
              a->stride / sizeof(float), stride / sizeof(float),
              ncol);
         ncol = blocks_per_row;
-        assert(ncol <= block.x);
+        assert((unsigned long)ncol <= block.x);
         grid.x = 1;
         block_reduce_sum<<<grid, block, block.x * sizeof(float)>>> \
             (res, b->data.f,
@@ -143,7 +144,7 @@ extern "C" {
              max->stride / sizeof(float),
              ncol);
         ncol = blocks_per_row;
-        assert(ncol <= block.x);
+        assert((unsigned long)ncol <= block.x);
         grid.x = 1;
         block_reduce_sum<<<grid, block, block.x * sizeof(float)>>> \
             (res, b->data.f,
@@ -165,7 +166,7 @@ extern "C" {
              a->stride / sizeof(float), stride / sizeof(float),
              ncol);
         ncol = blocks_per_row;
-        assert(ncol <= block.x);
+        assert((unsigned long)ncol <= block.x);
         grid.x = 1;
         block_reduce_max<<<grid, block, block.x * sizeof(float)>>> \
             (res, b->data.f,

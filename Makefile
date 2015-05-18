@@ -11,6 +11,7 @@ CFLAGS := -Wall -Wextra
 OBJ_DIR := build/objs
 LUA_DIR := build/lua
 NVCC := $(CUDA_BASE)/bin/nvcc
+NVCC_FLAGS := -Xcompiler -fPIC,-Wall,-Wextra
 
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 LIBS := $(addprefix $(OBJ_DIR)/,$(LIBS))
@@ -30,7 +31,7 @@ $(OBJ_DIR)/%.o: %.c
 $(OBJ_DIR)/matrix/%.o: matrix/%.c
 	gcc -c -o $@ $< $(INCLUDE) -fPIC $(CFLAGS)
 $(OBJ_DIR)/matrix/cukernel.o: matrix/cukernel.cu
-	$(NVCC) -c -o $@ $< -Xcompiler -fPIC $(INCLUDE)
+	$(NVCC) -c -o $@ $< $(INCLUDE) $(NVCC_FLAGS)
 $(LUA_DIR)/%.lua: %.lua
 	cp $< $@
 $(OBJ_DIR)/luaT.o:
