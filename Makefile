@@ -1,5 +1,5 @@
 .PHONY: all clean luajit
-OBJS := oop_example.o nerv.o luaT.o common.o matrix/matrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o
+OBJS := oop_example.o nerv.o luaT.o common.o matrix/mmatrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o
 LIBS := libnerv.so
 LUA_LIBS := matrix/init.lua nerv.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
