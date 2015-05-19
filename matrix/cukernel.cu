@@ -13,7 +13,3 @@
 #define MATRIX_USE_DOUBLE
 #include "generic/elem_type.h"
 #include "generic/cukernel.cu"
-#undef cudak_
-#undef MATRIX_USE_DOUBLE
-#undef MATRIX_ELEM
-#undef MATRIX_ELEM_PTR

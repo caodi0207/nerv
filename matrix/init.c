@@ -22,6 +22,6 @@ void nerv_matrix_init(lua_State *L) {
     lua_pop(L, 1);
     nerv_matrix_float_host_init(L);
     nerv_matrix_float_cuda_init(L);
-/*    nerv_matrix_double_host_init(L); */
+    nerv_matrix_double_host_init(L);
     nerv_matrix_double_cuda_init(L);
 }
