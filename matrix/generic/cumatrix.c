@@ -20,27 +20,43 @@
 static cublasHandle_t cublas_handle;
 
 Matrix *nerv_matrix_(new_)(long nrow, long ncol);
-static int nerv_matrix_(add)(lua_State *L) {
-    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    Matrix *c;
-    long nrow, ncol;
-    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
-        nerv_error(L, "Matrices should be of the same dimension");
-    nrow = a->nrow;
-    ncol = a->ncol;
-    c = nerv_matrix_(new_)(nrow, ncol);
-    MATRIX_ELEM alpha = 1.0f, beta = 1.0f;
+
+static void nerv_matrix_(add_)(const Matrix *a, const Matrix *b,
+                                const Matrix *c,
+                                MATRIX_ELEM alpha, MATRIX_ELEM beta) {
     NERV_CUBLAS_(geam)(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N,
-                ncol, nrow,
+                a->ncol, a->nrow,
                 &alpha,
                 MATRIX_ELEM_PTR(a), a->stride / sizeof(MATRIX_ELEM),
                 &beta,
                 MATRIX_ELEM_PTR(b), b->stride / sizeof(MATRIX_ELEM),
                 MATRIX_ELEM_PTR(c), c->stride / sizeof(MATRIX_ELEM));
+}
+
+static int nerv_matrix_(add)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    Matrix *c;
+    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
+        nerv_error(L, "Matrices should be of the same dimension");
+    c = nerv_matrix_(new_)(a->nrow, a->ncol);
+    nerv_matrix_(add_)(a, b, c, 1.0f, 1.0f);
     luaT_pushudata(L, c, nerv_matrix_(tname));
     return 1;
 }
+
+static int nerv_matrix_(sub)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    Matrix *c;
+    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
+        nerv_error(L, "Matrices should be of the same dimension");
+    c = nerv_matrix_(new_)(a->nrow, a->ncol);
+    nerv_matrix_(add_)(a, b, c, 1.0f, -1.0f);
+    luaT_pushudata(L, c, nerv_matrix_(tname));
+    return 1;
+}
+
 
 static int nerv_matrix_(mul)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
@@ -99,6 +115,7 @@ static int nerv_matrix_(colmax)(lua_State *L) {
 
 static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"__add__", nerv_matrix_(add)},
+    {"__sub__", nerv_matrix_(sub)},
     {"__mul__", nerv_matrix_(mul)},
     {"sigmoid", nerv_matrix_(sigmoid)},
     {"softmax", nerv_matrix_(softmax)},

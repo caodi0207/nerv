@@ -11,6 +11,10 @@ for i = 0, m - 1 do
     end
 end
 print(fm)
-print(fm:softmax())
+fs = fm:softmax()
+print(fs)
 print(dm)
-print(dm:softmax())
+ds = dm:softmax()
+print(ds)
+print(fs + fs)
+print(fs - fs)
