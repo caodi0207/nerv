@@ -95,25 +95,33 @@ static int nerv_matrix_(softmax)(lua_State *L) {
     Matrix *max = nerv_matrix_(new_)(a->nrow, 1);
     Matrix *dno = nerv_matrix_(new_)(a->nrow, 1);
     Matrix *b = nerv_matrix_(new_)(a->nrow, a->ncol);
-    cudak_(cuda_colmax)(a, max);
+    cudak_(cuda_rowmax)(a, max);
     cudak_(cuda_softmax_denominator)(a, max, dno);
     cudak_(cuda_softmax_final)(a, max, dno, b);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(colsum)(lua_State *L) {
+static int nerv_matrix_(rowsum)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = nerv_matrix_(new_)(a->nrow, 1);
+    cudak_(cuda_rowsum)(a, b);
+    luaT_pushudata(L, b, nerv_matrix_(tname));
+    return 1;
+}
+
+static int nerv_matrix_(colsum)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = nerv_matrix_(new_)(1, a->ncol);
     cudak_(cuda_colsum)(a, b);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(colmax)(lua_State *L) {
+static int nerv_matrix_(rowmax)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = nerv_matrix_(new_)(a->nrow, 1);
-    cudak_(cuda_colmax)(a, b);
+    cudak_(cuda_rowmax)(a, b);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
@@ -125,7 +133,8 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"sigmoid", nerv_matrix_(sigmoid)},
     {"softmax", nerv_matrix_(softmax)},
     {"colsum", nerv_matrix_(colsum)},
-    {"colmax", nerv_matrix_(colmax)},
+    {"rowsum", nerv_matrix_(rowsum)},
+    {"rowmax", nerv_matrix_(rowmax)},
     {NULL, NULL}
 };
 

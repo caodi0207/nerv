@@ -27,7 +27,7 @@ __global__ void cudak_(softmax_final)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
     b[idx] = exp(a[idx] - max[0 + i * mstride]) / deno[0 + i * mstride];
 }
 
-__global__ void cudak_(block_reduce_sum)(const MATRIX_ELEM *input,
+__global__ void cudak_(block_reduce_rowsum)(const MATRIX_ELEM *input,
                                 MATRIX_ELEM *output,
                                 const int istride, const int ostride,
                                 const int n) {
@@ -45,7 +45,25 @@ __global__ void cudak_(block_reduce_sum)(const MATRIX_ELEM *input,
         output[blockIdx.x + ostride * blockIdx.y] = cudak_(arr)[0];
 }
 
-__global__ void cudak_(block_reduce_softmax_sum)(const MATRIX_ELEM *input,
+__global__ void cudak_(block_reduce_colsum)(const MATRIX_ELEM *input,
+                                MATRIX_ELEM *output,
+                                const int istride, const int ostride,
+                                const int n) {
+    extern __shared__ MATRIX_ELEM cudak_(arr)[];
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    cudak_(arr)[threadIdx.y] = i < n ? input[blockIdx.x + istride * i] : 0;
+    __syncthreads();
+    for (int offset = blockDim.y >> 1;  offset; offset >>= 1)
+    {
+        if (threadIdx.y < offset)
+            cudak_(arr)[threadIdx.y] += cudak_(arr)[threadIdx.y + offset];
+        __syncthreads();
+    }
+    if (threadIdx.y == 0)
+        output[blockIdx.x + ostride * blockIdx.y] = cudak_(arr)[0];
+}
+
+__global__ void cudak_(block_reduce_softmax_rowsum)(const MATRIX_ELEM *input,
                                         MATRIX_ELEM *output,
                                         const MATRIX_ELEM *max,
                                         const int istride, const int ostride,
@@ -65,7 +83,7 @@ __global__ void cudak_(block_reduce_softmax_sum)(const MATRIX_ELEM *input,
         output[blockIdx.x + ostride * blockIdx.y] = cudak_(arr)[0];
 }
 
-__global__ void cudak_(block_reduce_max)(const MATRIX_ELEM *input,
+__global__ void cudak_(block_reduce_rowmax)(const MATRIX_ELEM *input,
                                 MATRIX_ELEM *output,
                                 const int istride, const int ostride,
                                 const int n) {
@@ -99,7 +117,7 @@ extern "C" {
             b->stride / sizeof(MATRIX_ELEM));
     }
 
-    void cudak_(cuda_colsum)(const Matrix *a, Matrix *b) {
+    void cudak_(cuda_rowsum)(const Matrix *a, Matrix *b) {
         dim3 block(CUDA_THREADS_NN, 1);
         int ncol = a->ncol;
         int blocks_per_row = CEIL_DIV(ncol, block.x);
@@ -107,17 +125,39 @@ extern "C" {
         MATRIX_ELEM *res;
         size_t stride;
         cudaMallocPitch(&res, &stride, blocks_per_row * sizeof(MATRIX_ELEM), a->nrow);
-        cudak_(block_reduce_sum)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
+        cudak_(block_reduce_rowsum)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (MATRIX_ELEM_PTR(a), res,
              a->stride / sizeof(MATRIX_ELEM), stride / sizeof(MATRIX_ELEM),
              ncol);
         ncol = blocks_per_row;
         assert((unsigned long)ncol <= block.x);
         grid.x = 1;
-        cudak_(block_reduce_sum)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
+        cudak_(block_reduce_rowsum)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
+        cudaFree(res);
+    }
+
+    void cudak_(cuda_colsum)(const Matrix *a, Matrix *b) {
+        dim3 block(1, CUDA_THREADS_NN);
+        int nrow = a->nrow;
+        int blocks_per_col = CEIL_DIV(nrow, block.x);
+        dim3 grid(a->ncol, blocks_per_col);
+        MATRIX_ELEM *res;
+        size_t stride;
+        cudaMallocPitch(&res, &stride, a->ncol * sizeof(MATRIX_ELEM), blocks_per_col);
+        cudak_(block_reduce_colsum)<<<grid, block, block.y * sizeof(MATRIX_ELEM)>>> \
+            (MATRIX_ELEM_PTR(a), res,
+             a->stride / sizeof(MATRIX_ELEM), stride / sizeof(MATRIX_ELEM),
+             nrow);
+        nrow = blocks_per_col;
+        assert((unsigned long)nrow <= block.y);
+        grid.y = 1;
+        cudak_(block_reduce_colsum)<<<grid, block, block.y * sizeof(MATRIX_ELEM)>>> \
+            (res, MATRIX_ELEM_PTR(b),
+             stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
+             nrow);
         cudaFree(res);
     }
 
@@ -144,7 +184,8 @@ extern "C" {
         size_t stride;
         assert(max->ncol == 1);
         cudaMallocPitch(&res, &stride, blocks_per_row * sizeof(MATRIX_ELEM), a->nrow);
-        cudak_(block_reduce_softmax_sum)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
+        cudak_(block_reduce_softmax_rowsum) \
+            <<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (MATRIX_ELEM_PTR(a), res, MATRIX_ELEM_PTR(max),
              a->stride / sizeof(MATRIX_ELEM), stride / sizeof(MATRIX_ELEM),
              max->stride / sizeof(MATRIX_ELEM),
@@ -152,14 +193,15 @@ extern "C" {
         ncol = blocks_per_row;
         assert((unsigned long)ncol <= block.x);
         grid.x = 1;
-        cudak_(block_reduce_sum)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
+        cudak_(block_reduce_rowsum) \
+            <<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
         cudaFree(res);
     }
 
-    void cudak_(cuda_colmax)(const Matrix *a, Matrix *b) {
+    void cudak_(cuda_rowmax)(const Matrix *a, Matrix *b) {
         dim3 block(CUDA_THREADS_NN, 1);
         int ncol = a->ncol;
         int blocks_per_row = CEIL_DIV(ncol, block.x);
@@ -167,14 +209,14 @@ extern "C" {
         MATRIX_ELEM *res;
         size_t stride;
         cudaMallocPitch(&res, &stride, blocks_per_row * sizeof(MATRIX_ELEM), a->nrow);
-        cudak_(block_reduce_max)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
+        cudak_(block_reduce_rowmax)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (MATRIX_ELEM_PTR(a), res,
              a->stride / sizeof(MATRIX_ELEM), stride / sizeof(MATRIX_ELEM),
              ncol);
         ncol = blocks_per_row;
         assert((unsigned long)ncol <= block.x);
         grid.x = 1;
-        cudak_(block_reduce_max)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
+        cudak_(block_reduce_rowmax)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
