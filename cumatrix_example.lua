@@ -10,11 +10,14 @@ for i = 0, m - 1 do
         dm[i][j] = t
     end
 end
--- print(fm)
+print(fm)
 fs = fm:softmax()
 -- print(fs)
--- print(dm)
+print(dm)
 ds = dm:softmax()
 -- print(ds)
+print(fs)
 print(fs + fs)
+print(ds + ds)
 print(fs - fs)
+print(ds - ds)

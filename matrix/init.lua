@@ -32,3 +32,9 @@ function nerv.CuMatrix:__sub__(b)
     c:add(self, b, 1.0, -1.0)
     return c
 end
+
+function nerv.CuMatrix:__mul__(b)
+    c = self:create()
+    c:mul(self, b, 'N', 'N')
+    return c
+end
