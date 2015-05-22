@@ -7,6 +7,7 @@
 #define MATRIX_DATA_STRIDE(ncol) (sizeof(MATRIX_ELEM) * (ncol))
 #define MATRIX_DATA_WRITE(data, idx, val) (data[idx] = val)
 #define MATRIX_DATA_READ(data, idx) (data[idx])
+#define MATRIX_BASE_TNAME nerv_matrix_host_tname
 #define NERV_GENERIC_MATRIX
 #include "../../common.h"
 

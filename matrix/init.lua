@@ -20,3 +20,15 @@ function nerv.Matrix:__tostring__()
     table.insert(strt, string.format("[Matrix %d x %d]", nrow, ncol))
     return table.concat(strt)
 end
+
+function nerv.CuMatrix:__add__(b)
+    c = self:create()
+    c:add(self, b, 1.0, 1.0)
+    return c
+end
+
+function nerv.CuMatrix:__sub__(b)
+    c = self:create()
+    c:add(self, b, 1.0, -1.0)
+    return c
+end

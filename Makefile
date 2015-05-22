@@ -38,6 +38,9 @@ $(OBJ_DIR)/luaT.o:
 	gcc -c -o $@ luaT/luaT.c $(INCLUDE) -fPIC
 $(LIBS): $(OBJS)
 	gcc -shared -o $@ $(OBJS) $(LDFLAGS)
+matrix/cumatrix.c: matrix/generic/cumatrix.c
+matrix/mmatrix.c: matrix/generic/mmatrix.c
+matrix/generic/mmatrix.c matrix/generic/cumatrix.c: matrix/generic/matrix.c
 clean:
 	-rm -rf $(OBJ_DIR)
 	-rm -rf $(LUA_DIR)

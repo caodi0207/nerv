@@ -1,7 +1,7 @@
 m = 10
 n = 10
-fm = nerv.FloatCuMatrix(m, n)
-dm = nerv.DoubleCuMatrix(m, n)
+fm = nerv.CuMatrixFloat(m, n)
+dm = nerv.CuMatrixDouble(m, n)
 for i = 0, m - 1 do
     for j = 0, n - 1 do
         -- local t = math.random(10)
@@ -10,11 +10,11 @@ for i = 0, m - 1 do
         dm[i][j] = t
     end
 end
-print(fm)
+-- print(fm)
 fs = fm:softmax()
-print(fs)
-print(dm)
+-- print(fs)
+-- print(dm)
 ds = dm:softmax()
-print(ds)
+-- print(ds)
 print(fs + fs)
 print(fs - fs)

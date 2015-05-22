@@ -2,10 +2,13 @@
 #include "generic/matrix.h"
 
 const char *nerv_matrix_tname = "nerv.Matrix";
-void nerv_matrix_float_host_init(lua_State *L);
-void nerv_matrix_float_cuda_init(lua_State *L);
-void nerv_matrix_double_host_init(lua_State *L);
-void nerv_matrix_double_cuda_init(lua_State *L);
+const char *nerv_matrix_cuda_tname = "nerv.CuMatrix";
+const char *nerv_matrix_host_tname = "nerv.MMatrix";
+
+void nerv_matrix_host_float_init(lua_State *L);
+void nerv_matrix_cuda_float_init(lua_State *L);
+void nerv_matrix_host_double_init(lua_State *L);
+void nerv_matrix_cuda_double_init(lua_State *L);
 
 static const luaL_Reg matrix_methods[] = {
     {"__tostring__", nerv_error_method_not_implemented },
@@ -16,12 +19,20 @@ static const luaL_Reg matrix_methods[] = {
 };
 
 void nerv_matrix_init(lua_State *L) {
-    /* abstract class */
+    /* abstract base class: Matrix */
     luaT_newmetatable(L, nerv_matrix_tname, NULL, NULL, NULL, NULL);
     luaL_register(L, NULL, matrix_methods);
     lua_pop(L, 1);
-    nerv_matrix_float_host_init(L);
-    nerv_matrix_float_cuda_init(L);
-    nerv_matrix_double_host_init(L);
-    nerv_matrix_double_cuda_init(L);
+
+    /* CuMatrix inherits from Matrix */
+    luaT_newmetatable(L, nerv_matrix_cuda_tname, nerv_matrix_tname,
+                            NULL, NULL, NULL);
+    nerv_matrix_cuda_float_init(L);
+    nerv_matrix_cuda_double_init(L);
+
+    /* MMatrix inherits from Matrix */
+    luaT_newmetatable(L, nerv_matrix_host_tname, nerv_matrix_tname,
+                            NULL, NULL, NULL);
+    nerv_matrix_host_float_init(L);
+    nerv_matrix_host_double_init(L);
 }

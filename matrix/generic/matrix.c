@@ -2,8 +2,8 @@
 #include "../../common.h"
 #include "matrix.h"
 
-extern const char *nerv_matrix_tname;
 extern const char *nerv_matrix_(tname);
+extern const char *MATRIX_BASE_TNAME;
 
 void nerv_matrix_(data_free)(Matrix *self) {
     if (--(*self->data_ref) == 0)
@@ -29,7 +29,7 @@ Matrix *nerv_matrix_(new_)(long nrow, long ncol) {
 
 int nerv_matrix_(new)(lua_State *L) {
     luaT_pushudata(L, nerv_matrix_(new_)(luaL_checkinteger(L, 1),
-                                                luaL_checkinteger(L, 2)),
+                                        luaL_checkinteger(L, 2)),
                     nerv_matrix_(tname));
     return 1;
 }
@@ -132,7 +132,7 @@ static const luaL_Reg nerv_matrix_(methods)[] = {
 };
 
 void nerv_matrix_(init)(lua_State *L) {
-    luaT_newmetatable(L, nerv_matrix_(tname), nerv_matrix_tname,
+    luaT_newmetatable(L, nerv_matrix_(tname), MATRIX_BASE_TNAME,
                         nerv_matrix_(new), nerv_matrix_(destroy), NULL);
     luaL_register(L, NULL, nerv_matrix_(methods));
 #ifdef MATRIX_INIT
