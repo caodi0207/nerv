@@ -1,7 +1,7 @@
 .PHONY: all clean luajit
 OBJS := oop_example.o nerv.o luaT.o common.o matrix/mmatrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o io/init.o io/param.o
 LIBS := libnerv.so
-LUA_LIBS := matrix/init.lua nerv.lua pl/utils.lua pl/compat.lua
+LUA_LIBS := matrix/init.lua io/init.lua nerv.lua pl/utils.lua pl/compat.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
 CUDA_BASE := /usr/local/cuda-6.5
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
@@ -25,6 +25,7 @@ $(OBJ_DIR):
 	-mkdir -p $(OBJ_DIR)/matrix
 	-mkdir -p $(LUA_DIR)/matrix
 	-mkdir -p $(OBJ_DIR)/io
+	-mkdir -p $(LUA_DIR)/io
 	-mkdir -p $(LUA_DIR)/pl
 $(LUA_DIR):
 	-mkdir -p $(LUA_DIR)

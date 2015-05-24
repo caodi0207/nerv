@@ -21,7 +21,9 @@ const char *nerv_param_chunk_data_tname = "nerv.ParamChunkData";
 enum {
     NORMAL,
     INVALID_FORMAT,
-    END_OF_FILE
+    END_OF_FILE,
+    SECTION_OVERFLOW,
+    WRITE_ERROR
 };
 
 size_t read_param_header_plain(FILE *fp, int *status) {
@@ -41,6 +43,35 @@ size_t read_param_header_plain(FILE *fp, int *status) {
     return size;
 }
 
+#define CHECK_WRITE(status) \
+    do { \
+        if (status == SECTION_OVERFLOW) \
+            nerv_error(L, "section overflowed"); \
+        else if (status == WRITE_ERROR) \
+            nerv_error(L, "error while writing"); \
+    } while (0)
+
+void write_param_header_plain(FILE *fp, size_t size, int *status) {
+    static char buff[PARAM_HEADER_SIZE];
+    int i;
+    *status = NORMAL;
+    for (i = PARAM_HEADER_SIZE - 3; i > 0; i--, size /= 10)
+        buff[i] = size % 10 + '0';
+    if (size)
+    {
+        *status = SECTION_OVERFLOW;
+        return;
+    }
+    buff[0] = '[';
+    buff[PARAM_HEADER_SIZE - 2] = ']';
+    buff[PARAM_HEADER_SIZE - 1] = '\n';
+    if (fwrite(buff, 1, PARAM_HEADER_SIZE, fp) != PARAM_HEADER_SIZE)
+    {
+        *status = WRITE_ERROR;
+        return;
+    }
+}
+
 ParamChunkData *get_param_chunk_data(FILE *fp, ParamChunkInfo *info) {
     ParamChunkData *pcd = (ParamChunkData *)malloc(sizeof(ParamChunkData));
     pcd->data = (char *)malloc(info->length);
@@ -58,10 +89,29 @@ const char *read_param_metadata(lua_State *L, FILE *fp, const char *fn) {
     return buff;
 }
 
+void write_param_metadata(FILE *fp, const char *metadata_str, int *status) {
+    size_t size = strlen(metadata_str);
+    *status = NORMAL;
+    if (fwrite(metadata_str, 1, size, fp) != size ||
+        fprintf(fp, "\n") < 0)
+    {
+        *status = WRITE_ERROR;
+        return;
+    }
+    fprintf(stderr, "metadata: %s\n", metadata_str);
+}
+
+
 int nerv_param_file_open_write(lua_State *L, const char *fn) {
     FILE *fp = fopen(fn, "w");
+    ParamFileHandle *lfp;
     if (!fp) nerv_error(L, "Error while opening param file: %s", fn);
-    lua_newtable(L);
+    lfp = (ParamFileHandle *)malloc(sizeof(ParamFileHandle));
+    lfp->fp = fp;
+    luaT_pushudata(L, lfp, nerv_param_file_handle_tname);
+    lua_setfield(L, -2, "handle");
+    luaT_pushmetatable(L, nerv_param_file_tname);
+    lua_setmetatable(L, -2);
     return 1;
 }
 
@@ -145,6 +195,34 @@ int nerv_param_file_new(lua_State *L) {
                 nerv_param_file_open_write(L, fn);
 }
 
+int nerv_param_file_write_chunkdata(lua_State *L) {
+    ParamFileHandle *pfh;
+    int status;
+    off_t start;
+    size_t size;
+    const char *metadata_str = lua_tolstring(L, 2, NULL);
+    lua_getfield(L, 1, "handle");
+    pfh = luaT_checkudata(L, -1, nerv_param_file_handle_tname);
+    start = ftello(pfh->fp);
+    write_param_header_plain(pfh->fp, 0, &status); /* fill zeros */
+    CHECK_WRITE(status);
+    write_param_metadata(pfh->fp, metadata_str, &status);
+    CHECK_WRITE(status);
+    lua_getfield(L, 3, "save");
+    if (lua_type(L, -1) != LUA_TFUNCTION)
+        nerv_error(L, "\"save\" method must be implemented");
+    lua_pushvalue(L, 3);
+    lua_pushvalue(L, -3); /* pass handle as parameter to save() */
+    lua_call(L, 2, 0); /* let the save() to write */
+    size = ftello(pfh->fp) - start;
+    fseeko(pfh->fp, start, SEEK_SET);
+    /* write the calced size */
+    write_param_header_plain(pfh->fp, size, &status);
+    CHECK_WRITE(status);
+    fseeko(pfh->fp, 0, SEEK_END);
+    return 0;
+}
+
 int nerv_param_file_get_chunkdata(lua_State *L) {
     ParamFileHandle *pfh;
     ParamChunkInfo *pci;
@@ -190,6 +268,7 @@ static int nerv_param_chunk_data_destroy(lua_State *L) {
 
 static const luaL_Reg nerv_param_file_methods[] = {
     {"get_chunkdata", nerv_param_file_get_chunkdata},
+    {"_write_chunkdata", nerv_param_file_write_chunkdata},
     {"__init", nerv_param_file___init},
     {NULL, NULL}
 };

@@ -68,8 +68,37 @@ int nerv_matrix_(load)(lua_State *L) {
     return 1;
 }
 
+int nerv_matrix_(save)(lua_State *L) {
+    ParamFileHandle *chunk = luaT_checkudata(L, 2,
+                                nerv_param_file_handle_tname);
+    Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    int i, j;
+    long nrow = self->nrow, ncol = self->ncol;
+    FILE *fp = chunk->fp;
+    if (fprintf(fp, "%ld %ld\n", nrow, ncol) < 0)
+        return 0;
+    for (i = 0; i < nrow; i++)
+    {
+        MATRIX_ELEM *row = MATRIX_ROW_PTR(self, i);
+        for (j = 0; j < ncol; j++)
+            if (fprintf(fp, MATRIX_ELEM_FMT " ", row[j]) < 0)
+            {
+                free(self);
+                return 0;
+            }
+        if (fprintf(fp, "\n") < 0)
+        {
+             free(self);
+             return 0;
+        }
+    }
+    return 0;
+}
+
+
 static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"load", nerv_matrix_(load)},
+    {"save", nerv_matrix_(save)},
     {NULL, NULL}
 };
 
