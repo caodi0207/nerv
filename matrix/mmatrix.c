@@ -9,6 +9,7 @@ const char *nerv_matrix_(tname) = "nerv.MMatrixFloat";
 #undef MATRIX_USE_FLOAT
 #undef MATRIX_ELEM
 #undef MATRIX_ELEM_PTR
+#undef MATRIX_ELEM_FMT
 
 #define NERV_GENERIC_MMATRIX
 #define MATRIX_USE_DOUBLE

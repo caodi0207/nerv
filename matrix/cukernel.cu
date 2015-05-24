@@ -8,6 +8,7 @@
 #undef MATRIX_USE_FLOAT
 #undef MATRIX_ELEM
 #undef MATRIX_ELEM_PTR
+#undef MATRIX_ELEM_FMT
 
 #define cudak_(NAME) cudak_double_ ## NAME
 #define MATRIX_USE_DOUBLE

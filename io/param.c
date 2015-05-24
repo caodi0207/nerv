@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 #include "../common.h"
 #include "param.h"
 
@@ -57,9 +58,14 @@ const char *read_param_metadata(lua_State *L, FILE *fp, const char *fn) {
     return buff;
 }
 
-int nerv_param_file_new(lua_State *L) {
+int nerv_param_file_open_write(lua_State *L, const char *fn) {
+    FILE *fp = fopen(fn, "w");
+    if (!fp) nerv_error(L, "Error while opening param file: %s", fn);
+    lua_newtable(L);
+    return 1;
+}
 
-    const char *fn = luaL_checkstring(L, 1);
+int nerv_param_file_open_read(lua_State *L, const char *fn) {
     FILE *fp = fopen(fn, "r");
     int i, status;
     size_t param_len;
@@ -68,7 +74,6 @@ int nerv_param_file_new(lua_State *L) {
 
     if (!fp) nerv_error(L, "Error while opening param file: %s", fn);
     offset = ftello(fp);
-    lua_newtable(L);
     lua_newtable(L);
     fprintf(stderr, "%d\n", (int)offset);
     for (i = 0;; offset += param_len, i++)
@@ -106,6 +111,40 @@ int nerv_param_file_new(lua_State *L) {
     return 1;
 }
 
+int nerv_param_file___init(lua_State *L) {
+    const char *fn = luaL_checkstring(L, 2);
+    const char *mode = luaL_checkstring(L, 3);
+    int rd = 1, bin = 0;
+    size_t i, len = strlen(mode);
+    lua_pushvalue(L, 1);
+    for (i = 0; i < len; i++)
+        switch (mode[i])
+        {
+            case 'r': rd = 1; break;
+            case 'w': rd = 0; break;
+            case 'b': bin = 1; break;
+        }
+    return rd ? nerv_param_file_open_read(L, fn) : \
+                nerv_param_file_open_write(L, fn);
+}
+
+int nerv_param_file_new(lua_State *L) {
+    const char *fn = luaL_checkstring(L, 1);
+    const char *mode = luaL_checkstring(L, 2);
+    int rd = 1, bin = 0;
+    size_t i, len = strlen(mode);
+    for (i = 0; i < len; i++)
+        switch (mode[i])
+        {
+            case 'r': rd = 1; break;
+            case 'w': rd = 0; break;
+            case 'b': bin = 1; break;
+        }
+    lua_newtable(L);
+    return rd ? nerv_param_file_open_read(L, fn) : \
+                nerv_param_file_open_write(L, fn);
+}
+
 int nerv_param_file_get_chunkdata(lua_State *L) {
     ParamFileHandle *pfh;
     ParamChunkInfo *pci;
@@ -124,7 +163,6 @@ int nerv_param_file_get_chunkdata(lua_State *L) {
 
     luaT_pushudata(L, get_param_chunk_data(pfh->fp, pci),
                         nerv_param_chunk_data_tname);
-    lua_setfield(L, -2, "data");
     return 1;
 }
 
@@ -152,6 +190,7 @@ static int nerv_param_chunk_data_destroy(lua_State *L) {
 
 static const luaL_Reg nerv_param_file_methods[] = {
     {"get_chunkdata", nerv_param_file_get_chunkdata},
+    {"__init", nerv_param_file___init},
     {NULL, NULL}
 };
 

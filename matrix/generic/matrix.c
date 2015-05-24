@@ -2,6 +2,9 @@
 #include "../../common.h"
 #include "matrix.h"
 
+#define MATRIX_ROW_PTR(self, row) \
+    (MATRIX_ELEM *)((char *)MATRIX_ELEM_PTR(self) + (row) * (self)->stride)
+
 extern const char *nerv_matrix_(tname);
 extern const char *MATRIX_BASE_TNAME;
 
@@ -49,8 +52,7 @@ static Matrix *nerv_matrix_(getrow)(Matrix *self, int row) {
     prow->nrow = 1;
     prow->stride = self->stride;
     prow->nmax = prow->ncol;
-    MATRIX_ELEM_PTR(prow) = \
-        (MATRIX_ELEM *)((char *)MATRIX_ELEM_PTR(self) + row * self->stride);
+    MATRIX_ELEM_PTR(prow) = MATRIX_ROW_PTR(self, row);
     prow->data_ref = self->data_ref;
     nerv_matrix_(data_retain)(self);
     return prow;

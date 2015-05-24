@@ -14,6 +14,7 @@ const char *nerv_matrix_(tname) = "nerv.CuMatrixFloat";
 #undef MATRIX_USE_FLOAT
 #undef MATRIX_ELEM
 #undef MATRIX_ELEM_PTR
+#undef MATRIX_ELEM_FMT
 
 #define MATRIX_USE_DOUBLE
 #define cuda_matrix_(NAME) cuda_matrix_double_##NAME
