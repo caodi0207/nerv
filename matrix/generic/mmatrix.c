@@ -17,6 +17,9 @@ static void host_matrix_(alloc)(MATRIX_ELEM **dptr, size_t *stride,
     *stride = width;
 }
 
+static const luaL_Reg nerv_matrix_(extra_methods)[] = {
+};
+
 int nerv_matrix_(get_elem)(lua_State *L) {
     Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
     int idx = luaL_checkinteger(L, 2);
