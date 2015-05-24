@@ -4,7 +4,7 @@ require 'matrix.init'
 nerv.utils = require 'pl.utils'
 
 function nerv.error(fmt, ...)
-    error(nerv.utils.printf("Nerv internal error: " .. fmt, ...))
+    error(nerv.utils.printf("Nerv internal error: " .. fmt .. "\n", ...))
 end
 
 function nerv.error_method_not_implement()
