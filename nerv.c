@@ -1,6 +1,6 @@
 #include "common.h"
 
-extern void nerv_point_init(lua_State *L);
+extern void nerv_example_init(lua_State *L);
 extern void nerv_matrix_init(lua_State *L);
 extern void nerv_param_init(lua_State *L);
 
@@ -30,7 +30,7 @@ int luaopen_libnerv(lua_State *L) {
      * Also note that they can make use of the value at top of the stack which
      * references to the `nerv` global table. */
     nerv_utils_init(L);
-    nerv_point_init(L);
+    nerv_example_init(L);
     nerv_matrix_init(L);
     nerv_param_init(L);
     return 1;
