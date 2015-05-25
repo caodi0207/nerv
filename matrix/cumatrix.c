@@ -5,6 +5,7 @@
 #define nerv_matrix_(NAME) nerv_matrix_cuda_float_##NAME
 #define cudak_(NAME) cudak_float_ ## NAME
 #define NERV_CUBLAS_(NAME) cublasS##NAME
+#define MATRIX_CUMATRIX_HOST_TNAME nerv_matrix_host_float_tname
 const char *nerv_matrix_(tname) = "nerv.CuMatrixFloat";
 #include "generic/cumatrix.c"
 #undef NERV_CUBLAS_
@@ -15,11 +16,13 @@ const char *nerv_matrix_(tname) = "nerv.CuMatrixFloat";
 #undef MATRIX_ELEM
 #undef MATRIX_ELEM_PTR
 #undef MATRIX_ELEM_FMT
+#undef MATRIX_CUMATRIX_HOST_TNAME
 
 #define MATRIX_USE_DOUBLE
 #define cuda_matrix_(NAME) cuda_matrix_double_##NAME
 #define nerv_matrix_(NAME) nerv_matrix_cuda_double_##NAME
 #define cudak_(NAME) cudak_double_ ## NAME
 #define NERV_CUBLAS_(NAME) cublasD##NAME
+#define MATRIX_CUMATRIX_HOST_TNAME nerv_matrix_host_double_tname
 const char *nerv_matrix_(tname) = "nerv.CuMatrixDouble";
 #include "generic/cumatrix.c"

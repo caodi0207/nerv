@@ -126,6 +126,32 @@ static int nerv_matrix_(rowmax)(lua_State *L) {
     return 1;
 }
 
+extern const char *MATRIX_CUMATRIX_HOST_TNAME;
+static int nerv_matrix_(copy_from)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
+    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
+        nerv_error(L, "Matrices should be of the same dimension");
+    cudaMemcpy2D(MATRIX_ELEM_PTR(a), a->stride,
+                MATRIX_ELEM_PTR(b), b->stride,
+                sizeof(MATRIX_ELEM) * b->ncol, b->nrow,
+                cudaMemcpyHostToDevice);
+    return 0;
+}
+
+static int nerv_matrix_(copy_to)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
+    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
+        nerv_error(L, "Matrices should be of the same dimension");
+    cudaMemcpy2D(MATRIX_ELEM_PTR(b), b->stride,
+                MATRIX_ELEM_PTR(a), a->stride,
+                sizeof(MATRIX_ELEM) * a->ncol, a->nrow,
+                cudaMemcpyDeviceToHost);
+    return 0;
+}
+
+
 static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"add", nerv_matrix_(add)},
     {"mul", nerv_matrix_(mul)},
@@ -135,6 +161,8 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"colsum", nerv_matrix_(colsum)},
     {"rowsum", nerv_matrix_(rowsum)},
     {"rowmax", nerv_matrix_(rowmax)},
+    {"copy_from", nerv_matrix_(copy_from)},
+    {"copy_to", nerv_matrix_(copy_to)},
     {NULL, NULL}
 };
 
