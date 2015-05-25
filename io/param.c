@@ -39,7 +39,7 @@ size_t read_param_header_plain(FILE *fp, int *status) {
     for (i = 0; i < PARAM_HEADER_SIZE; i++)
         if (isdigit(buff[i]))
             size = size * 10 + buff[i] - '0';
-    fprintf(stderr, "header: %d\n", size);
+    fprintf(stderr, "header: %lu\n", size);
     return size;
 }
 
@@ -145,7 +145,7 @@ int nerv_param_file_open_read(lua_State *L, const char *fn) {
         pci = (ParamChunkInfo *)malloc(sizeof(ParamChunkInfo));
         pci->offset = ftello(fp);
         pci->length = param_len - (pci->offset - offset);
-        fprintf(stderr, "%d + %d (skip %d)\n", (int)pci->offset,
+        fprintf(stderr, "%d + %d (skip %lu)\n", (int)pci->offset,
                 (int)pci->length, param_len);
         luaT_pushudata(L, pci, nerv_param_chunk_info_tname);
         lua_setfield(L, -2, "chunk");

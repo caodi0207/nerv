@@ -1,10 +1,7 @@
 #include <math.h>
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-#include "luaT/luaT.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../common.h"
 
 const char *point_tname = "nerv.Point";
 

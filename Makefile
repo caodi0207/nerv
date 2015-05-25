@@ -1,5 +1,8 @@
 .PHONY: all clean luajit
-OBJS := oop_example.o nerv.o luaT.o common.o matrix/mmatrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o io/init.o io/param.o
+OBJS := nerv.o luaT.o common.o \
+		matrix/mmatrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o \
+		io/init.o io/param.o \
+		examples/oop_example.o
 LIBS := libnerv.so
 LUA_LIBS := matrix/init.lua io/init.lua nerv.lua pl/utils.lua pl/compat.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
@@ -27,6 +30,7 @@ $(OBJ_DIR):
 	-mkdir -p $(OBJ_DIR)/io
 	-mkdir -p $(LUA_DIR)/io
 	-mkdir -p $(LUA_DIR)/pl
+	-mkdir -p $(OBJ_DIR)/examples
 $(LUA_DIR):
 	-mkdir -p $(LUA_DIR)
 $(OBJ_DIR)/%.o: %.c
