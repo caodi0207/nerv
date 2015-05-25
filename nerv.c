@@ -17,8 +17,18 @@ void nerv_utils_init(lua_State *L) {
 
 int luaopen_libnerv(lua_State *L) {
     lua_newtable(L);
+    /* duplicate table */
     lua_pushvalue(L, -1);
+    /* set table to global index */
     lua_setfield(L, LUA_GLOBALSINDEX, "nerv");
+    /* A table reference still remains.
+     *
+     * The following initialization functions should obey to the rule that they
+     * maintain the stack properly to guarantee the stack stays the same before
+     * and after invoking the call (i.e. stay balanced).
+     *
+     * Also note that they can make use of the value at top of the stack which
+     * references to the `nerv` global table. */
     nerv_utils_init(L);
     nerv_point_init(L);
     nerv_matrix_init(L);

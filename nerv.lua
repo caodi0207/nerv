@@ -1,7 +1,6 @@
 require 'libnerv'
 require 'matrix.init'
 require 'io.init'
--- nerv.class = require 'pl.class'
 nerv.utils = require 'pl.utils'
 
 function nerv.error(fmt, ...)
@@ -12,6 +11,7 @@ function nerv.error_method_not_implement()
     nerv.error("method not implemented");
 end
 
+-- Torch C API wrapper
 function nerv.class(tname, parenttname)
 
    local function constructor(...)
