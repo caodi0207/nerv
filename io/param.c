@@ -161,12 +161,9 @@ int nerv_param_file_open_read(lua_State *L, const char *fn) {
     return 1;
 }
 
-int nerv_param_file___init(lua_State *L) {
-    const char *fn = luaL_checkstring(L, 2);
-    const char *mode = luaL_checkstring(L, 3);
+int nerv_param_file_new_(lua_State *L, const char *fn, const char *mode) {
     int rd = 1, bin = 0;
     size_t i, len = strlen(mode);
-    lua_pushvalue(L, 1);
     for (i = 0; i < len; i++)
         switch (mode[i])
         {
@@ -178,21 +175,16 @@ int nerv_param_file___init(lua_State *L) {
                 nerv_param_file_open_write(L, fn);
 }
 
+int nerv_param_file___init(lua_State *L) {
+    lua_pushvalue(L, 1);
+    return nerv_param_file_new_(L, luaL_checkstring(L, 2),
+                                    luaL_checkstring(L, 3));
+}
+
 int nerv_param_file_new(lua_State *L) {
-    const char *fn = luaL_checkstring(L, 1);
-    const char *mode = luaL_checkstring(L, 2);
-    int rd = 1, bin = 0;
-    size_t i, len = strlen(mode);
-    for (i = 0; i < len; i++)
-        switch (mode[i])
-        {
-            case 'r': rd = 1; break;
-            case 'w': rd = 0; break;
-            case 'b': bin = 1; break;
-        }
     lua_newtable(L);
-    return rd ? nerv_param_file_open_read(L, fn) : \
-                nerv_param_file_open_write(L, fn);
+    return nerv_param_file_new_(L, luaL_checkstring(L, 1),
+                                    luaL_checkstring(L, 2));
 }
 
 int nerv_param_file_write_chunkdata(lua_State *L) {
