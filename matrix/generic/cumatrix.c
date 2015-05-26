@@ -126,6 +126,15 @@ static int nerv_matrix_(rowmax)(lua_State *L) {
     return 1;
 }
 
+
+static int nerv_matrix_(add_row)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    double beta = luaL_checknumber(L, 3);
+    cudak_(cuda_add_row)(a, b, beta);
+    return 0;
+}
+
 extern const char *MATRIX_CUMATRIX_HOST_TNAME;
 static int nerv_matrix_(copy_from)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
@@ -163,6 +172,8 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"rowmax", nerv_matrix_(rowmax)},
     {"copy_from", nerv_matrix_(copy_from)},
     {"copy_to", nerv_matrix_(copy_to)},
+    /* in-place calc */
+    {"add_row", nerv_matrix_(add_row)},
     {NULL, NULL}
 };
 

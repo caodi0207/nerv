@@ -24,7 +24,7 @@ end
 
 local Layer = nerv.class('nerv.Layer')
 
-function nerv.Layer:_init(param)
+function nerv.Layer:_init(id, ...)
     nerv.error_method_not_implemented()
 end
 

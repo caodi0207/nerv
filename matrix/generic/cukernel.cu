@@ -105,6 +105,15 @@ __global__ void cudak_(block_reduce_rowmax)(const MATRIX_ELEM *input,
         output[blockIdx.x + ostride * blockIdx.y] = cudak_(arr)[0];
 }
 
+__global__ void cudak_(add_row)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
+                                int nrow, int ncol, int stride, double beta) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nrow || j >= ncol) return;
+    b[j + i * stride] += beta * a[j];
+}
+
+
 extern "C" {
 #include "../cukernel.h"
     void cudak_(cuda_sigmoid)(const Matrix *a, Matrix *b) {
@@ -221,6 +230,17 @@ extern "C" {
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
         cudaFree(res);
+    }
+
+    /* in-place calc */
+    void cudak_(cuda_add_row)(const Matrix *a, Matrix *b, double beta) {
+        dim3 threadsPerBlock(CUDA_THREADS_N,
+                CUDA_THREADS_N);
+        dim3 numBlocks(CEIL_DIV(b->ncol, threadsPerBlock.x),
+                CEIL_DIV(b->nrow, threadsPerBlock.y));
+        cudak_(add_row)<<<numBlocks, threadsPerBlock>>> \
+            (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b), b->nrow, b->ncol,
+            b->stride / sizeof(MATRIX_ELEM), beta);
     }
 }
 #endif
