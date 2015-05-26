@@ -113,6 +113,14 @@ __global__ void cudak_(add_row)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
     b[j + i * stride] += beta * a[j];
 }
 
+__global__ void cudak_(fill)(MATRIX_ELEM *a,
+                            int nrow, int ncol, int stride, double val) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nrow || j >= ncol) return;
+    a[j + i * stride] = val;
+}
+
 
 extern "C" {
 #include "../cukernel.h"
@@ -241,6 +249,16 @@ extern "C" {
         cudak_(add_row)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b), b->nrow, b->ncol,
             b->stride / sizeof(MATRIX_ELEM), beta);
+    }
+
+    void cudak_(cuda_fill)(Matrix *a, double val) {
+        dim3 threadsPerBlock(CUDA_THREADS_N,
+                CUDA_THREADS_N);
+        dim3 numBlocks(CEIL_DIV(a->ncol, threadsPerBlock.x),
+                CEIL_DIV(a->nrow, threadsPerBlock.y));
+        cudak_(fill)<<<numBlocks, threadsPerBlock>>> \
+            (MATRIX_ELEM_PTR(a), a->nrow, a->ncol,
+            a->stride / sizeof(MATRIX_ELEM), val);
     }
 }
 #endif
