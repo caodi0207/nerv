@@ -77,7 +77,8 @@ ParamChunkData *get_param_chunk_data(FILE *fp, ParamChunkInfo *info) {
     pcd->data = (char *)malloc(info->length);
     pcd->fp = fmemopen(pcd->data, info->length, "r");
     assert(fseeko(fp, info->offset, SEEK_SET) == 0);
-    assert(fread(pcd->data, 1, info->length, fp) == (size_t)info->length);
+    if (fread(pcd->data, 1, info->length, fp) != (size_t)info->length)
+        return NULL;
     return pcd;
 }
 
@@ -239,6 +240,7 @@ int nerv_param_file_write_chunkdata(lua_State *L) {
 int nerv_param_file_get_chunkdata(lua_State *L) {
     ParamFileHandle *pfh;
     ParamChunkInfo *pci;
+    ParamChunkData *pcd;
     const char *id = luaL_checkstring(L, 2);
 
     lua_getfield(L, 1, "handle");
@@ -252,9 +254,9 @@ int nerv_param_file_get_chunkdata(lua_State *L) {
         return 0;
     lua_getfield(L, -1, "chunk");
     pci = luaT_checkudata(L, -1, nerv_param_chunk_info_tname);
-
-    luaT_pushudata(L, get_param_chunk_data(pfh->fp, pci),
-                        nerv_param_chunk_data_tname);
+    if (!(pcd = get_param_chunk_data(pfh->fp, pci)))
+        nerv_error(L, "unexpected end of file");
+    luaT_pushudata(L, pcd, nerv_param_chunk_data_tname);
     return 1;
 }
 

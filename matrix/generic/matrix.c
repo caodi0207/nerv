@@ -9,8 +9,14 @@ extern const char *nerv_matrix_(tname);
 extern const char *MATRIX_BASE_TNAME;
 
 void nerv_matrix_(data_free)(Matrix *self) {
+    assert(*self->data_ref > 0);
     if (--(*self->data_ref) == 0)
+    {
+        /* free matrix data */
         MATRIX_DATA_FREE(MATRIX_ELEM_PTR(self));
+        free(self->data_ref);
+        free(self);
+    }
 }
 
 void nerv_matrix_(data_retain)(Matrix *self) {
@@ -40,7 +46,7 @@ int nerv_matrix_(new)(lua_State *L) {
 int nerv_matrix_(destroy)(lua_State *L) {
     Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
     nerv_matrix_(data_free)(self);
-    return 0;
+    return 1;
 }
 
 int nerv_matrix_(get_elem)(lua_State *L); 
@@ -54,7 +60,7 @@ static Matrix *nerv_matrix_(getrow)(Matrix *self, int row) {
     prow->nmax = prow->ncol;
     MATRIX_ELEM_PTR(prow) = MATRIX_ROW_PTR(self, row);
     prow->data_ref = self->data_ref;
-    nerv_matrix_(data_retain)(self);
+    nerv_matrix_(data_retain)(prow);
     return prow;
 }
 

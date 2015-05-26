@@ -35,7 +35,7 @@ end
 
 function nerv.CuMatrix:__mul__(b)
     c = self:create()
-    c:mul(self, b, 0.5, 0.0, 'N', 'N')
+    c:mul(self, b, 1.0, 0.0, 'N', 'N')
     return c
 end
 

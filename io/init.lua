@@ -22,7 +22,8 @@ function nerv.ParamFile:read_param(id)
     if metadata == nil then
         nerv_error("param with id %s does not exist", id)
     end
-    local param = assert(loadstring("return " .. metadata.type .. "(" .. id .. ")"))()
+    local param = assert(loadstring("return " ..
+                    metadata.type .. "(\"" .. id .. "\")"))()
     param:set_info(metadata.info)
     param:read(self:get_chunkdata(id))
     return param

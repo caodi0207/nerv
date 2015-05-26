@@ -6,6 +6,10 @@ function nerv.Param:__init(id)
     self.id = id
 end
 
+function nerv.Param:init(id)
+    nerv.error_method_not_implemented()
+end
+
 function nerv.Param:get_info()
     return self.info
 end
