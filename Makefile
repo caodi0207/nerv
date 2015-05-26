@@ -4,7 +4,7 @@ OBJS := nerv.o luaT.o common.o \
 		io/init.o io/param.o \
 		examples/oop_example.o
 LIBS := libnerv.so
-LUA_LIBS := matrix/init.lua io/init.lua nerv.lua pl/utils.lua pl/compat.lua
+LUA_LIBS := matrix/init.lua io/init.lua nerv.lua pl/utils.lua pl/compat.lua layer/init.lua layer/affine.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
 CUDA_BASE := /usr/local/cuda-6.5
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
@@ -30,6 +30,7 @@ $(OBJ_DIR):
 	-mkdir -p $(OBJ_DIR)/io
 	-mkdir -p $(LUA_DIR)/io
 	-mkdir -p $(LUA_DIR)/pl
+	-mkdir -p $(LUA_DIR)/layer
 	-mkdir -p $(OBJ_DIR)/examples
 $(LUA_DIR):
 	-mkdir -p $(LUA_DIR)

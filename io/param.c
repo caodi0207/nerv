@@ -141,6 +141,7 @@ int nerv_param_file_open_read(lua_State *L, const char *fn) {
         luaL_loadstring(L, read_param_metadata(L, fp, fn));
         CHECK_FORMAT(lua_pcall(L, 0, 1, 0), 0, fn);
         CHECK_FORMAT(lua_istable(L, -1), 1, fn);
+        /* stack: obj_table, metadata */
         /* chunk info */
         pci = (ParamChunkInfo *)malloc(sizeof(ParamChunkInfo));
         pci->offset = ftello(fp);
@@ -149,7 +150,25 @@ int nerv_param_file_open_read(lua_State *L, const char *fn) {
                 (int)pci->length, param_len);
         luaT_pushudata(L, pci, nerv_param_chunk_info_tname);
         lua_setfield(L, -2, "chunk");
-        lua_rawseti(L, -2, i);
+        /* stack: obj_table, metadata */
+        /* get id */
+        lua_getfield(L, -1, "id");
+        /* stack: obj_table, metadata, id */
+        if (!lua_isstring(L, -1))
+            nerv_error(L, "id field in metadata must be a string");
+        lua_pushvalue(L, -1);
+        /* stack: obj_table, metadata, id, id */
+        lua_gettable(L, -4);
+        /* stack: obj_table, metadata, id, obj[id] */
+        if (!lua_isnil(L, -1))
+            nerv_error(L, "conflicting id");
+        lua_pop(L, 1);
+        /* stack: obj_table, metadata, id */
+        lua_pushvalue(L, -2);
+        /* stack: obj_table, metadata, id, metadata */
+        lua_settable(L, -4);
+        /* stack: obj_table, metadata */
+        lua_pop(L, 1);
     }
     lua_setfield(L, -2, "metadata");
     lfp = (ParamFileHandle *)malloc(sizeof(ParamFileHandle));
@@ -200,12 +219,14 @@ int nerv_param_file_write_chunkdata(lua_State *L) {
     CHECK_WRITE(status);
     write_param_metadata(pfh->fp, metadata_str, &status);
     CHECK_WRITE(status);
-    lua_getfield(L, 3, "save");
-    if (lua_type(L, -1) != LUA_TFUNCTION)
-        nerv_error(L, "\"save\" method must be implemented");
     lua_pushvalue(L, 3);
-    lua_pushvalue(L, -3); /* pass handle as parameter to save() */
+    lua_getfield(L, -1, "save");
+    if (!lua_isfunction(L, -1))
+        nerv_error(L, "\"save\" method must be implemented");
+    lua_pushvalue(L, -2);
+    lua_pushvalue(L, 4); /* pass handle as parameter to save() */
     lua_call(L, 2, 0); /* let the save() to write */
+    lua_pop(L, 1);
     size = ftello(pfh->fp) - start;
     fseeko(pfh->fp, start, SEEK_SET);
     /* write the calced size */
@@ -218,16 +239,17 @@ int nerv_param_file_write_chunkdata(lua_State *L) {
 int nerv_param_file_get_chunkdata(lua_State *L) {
     ParamFileHandle *pfh;
     ParamChunkInfo *pci;
-    int k = luaL_checkinteger(L, 2);
+    const char *id = luaL_checkstring(L, 2);
 
     lua_getfield(L, 1, "handle");
     pfh = luaT_checkudata(L, -1, nerv_param_file_handle_tname);
     lua_pop(L, 1); /* pop handle */
-
     lua_getfield(L, 1, "metadata");
     /* now stack: self, k, metadata */
-    lua_rawgeti(L, -1, k);
-    /* now stack: self, k, metadata, ith{} */
+    lua_getfield(L, -1, id);
+    /* now stack: self, k, metadata, kth{} */
+    if (lua_isnil(L, -1)) /* no chunck with the id */
+        return 0;
     lua_getfield(L, -1, "chunk");
     pci = luaT_checkudata(L, -1, nerv_param_chunk_info_tname);
 

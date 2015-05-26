@@ -5,11 +5,12 @@ p:set_x(1.0)
 p:set_y(2.0)
 print(p:norm()) -- get 2-norm of the Point
 
-p = nerv.BetterPoint(1, 2)
-print(p)
-print(p:norm()) --get 1-norm of the Point
+bp = nerv.BetterPoint(1, 2)
+-- use methods from base class
+bp:set_x(1.0)
+bp:set_y(2.0)
+print(bp)
+print(bp:norm()) --get 1-norm of the Point
 
--- create a subclass using lua
-local EvenBetterPoint = nerv.class('nerv.EvenBetterPoint', 'nerv.BetterPoint')
-bp = nerv.EvenBetterPoint(1, 2)
-print(p:norm())
+print(p.__typename)
+print(bp.__typename)

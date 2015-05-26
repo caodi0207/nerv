@@ -1,6 +1,4 @@
 require 'libnerv'
-require 'matrix.init'
-require 'io.init'
 nerv.utils = require 'pl.utils'
 
 function nerv.error(fmt, ...)
@@ -72,3 +70,7 @@ function table.tostring(tbl)
   end
   return "{" .. table.concat(result, ",") .. "}"
 end
+
+require 'matrix.init'
+require 'io.init'
+require 'layer.init'

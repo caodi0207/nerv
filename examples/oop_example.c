@@ -46,22 +46,9 @@ int point_new(lua_State *L) {
     return 1;
 }
 
-int point___init(lua_State *L) {
-    /* The difference between this function and `_new` function is that this
-     * one is called by subclass of Point implemented in Lua, although it
-     * basically does the same thing as `_new`. Also, it can read the empty
-     * object (table) from the stack. (In this example, the table is ignored.) */
-    Point *self = (Point *)malloc(sizeof(Point));
-    point_new_(self, luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    luaT_pushudata(L, self, point_tname);
-    fprintf(stderr, "[example] A subclass has invoked `__init`\n");
-    return 1;
-}
-
 static const luaL_Reg point_methods[] = {
     {"set_x", point_set_x},
     {"set_y", point_set_y},
-    {"__init", point___init},
     {"norm", point_norm},
     {NULL, NULL}
 };
@@ -84,21 +71,8 @@ int better_point_new(lua_State *L) {
     return 1;
 }
 
-int better_point___init(lua_State *L) {
-    /* The difference between this function and `_new` function is that this
-     * one is called by subclass of Point implemented in Lua, although it
-     * basically does the same thing as `_new`. Also, it can read the empty
-     * object (table) from the stack. (In this example, the table is ignored.) */
-    Point *self = (Point *)malloc(sizeof(Point));
-    point_new_(self, luaL_checknumber(L, 2), luaL_checknumber(L, 3));
-    luaT_pushudata(L, self, better_point_tname);
-    fprintf(stderr, "[example] A subclass has invoked `__init`\n");
-    return 1;
-}
-
 static const luaL_Reg better_point_methods[] = {
     {"norm", better_point_norm},
-    {"__init", better_point___init},
     {NULL, NULL}
 };
 
