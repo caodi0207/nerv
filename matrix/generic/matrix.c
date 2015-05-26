@@ -122,12 +122,18 @@ static int nerv_matrix_(nrow)(lua_State *L) {
     return 1;
 }
 
+static int nerv_matrix_(get_dataref_value)(lua_State *L) {                                                                                                                                               
+    Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));                                                                                                                                           
+    lua_pushinteger(L, *(self->data_ref));                                                                                                                                                               
+    return 1;                                                                                                                                                                                            
+}      
 
 static const luaL_Reg nerv_matrix_(methods)[] = {
     {"get_elem", nerv_matrix_(get_elem)},
     {"set_elem", nerv_matrix_(set_elem)},
     {"ncol", nerv_matrix_(ncol)},
     {"nrow", nerv_matrix_(nrow)},
+    {"get_dataref_value", nerv_matrix_(get_dataref_value)},
     {"__index__", nerv_matrix_(index)},
     {"__newindex__", nerv_matrix_(newindex)},
     {NULL, NULL}

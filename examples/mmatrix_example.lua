@@ -10,6 +10,10 @@ for i = 0, m - 1 do
         dm[i][j] = t
     end
 end
+print("test fm:get_dataref_value:", fm:get_dataref_value())
+print("forced a garbade collect")
+collectgarbage("collect")
+print("test fm:get_dataref_value:", fm:get_dataref_value())
 print(fm)
 -- print(fm:softmax())
 print(dm)
