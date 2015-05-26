@@ -42,7 +42,6 @@ end
 function nerv.CuMatrixFloat.new_from_host(mat)
     local res = nerv.CuMatrixFloat(mat:nrow(), mat:ncol())
     res:copy_from(mat)
-    print(res)
     return res
 end
 

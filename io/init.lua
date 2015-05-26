@@ -25,4 +25,5 @@ function nerv.ParamFile:read_param(id)
     local param = assert(loadstring("return " .. metadata.type .. "(" .. id .. ")"))()
     param:set_info(metadata.info)
     param:read(self:get_chunkdata(id))
+    return param
 end
