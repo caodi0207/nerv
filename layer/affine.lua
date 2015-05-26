@@ -22,11 +22,18 @@ function AffineLayer:__init(id, global_conf, ltp, bp)
     self.bc:fill(0)
 end
 
-function nerv.AffineLayer:update(input, output)
-    -- momentum gain --
-    mmt_gain = 1.0 / (1.0 - gconf.momentum);
-    n = input.nrow() * mmt_gain
---    ltc = 
+function nerv.AffineLayer:update(bp_err, input, output)
+    -- momentum gain
+    local mmt_gain = 1.0 / (1.0 - gconf.momentum);
+    local n = input.nrow() * mmt_gain
+    -- update corrections (accumulated errors)
+    ltc:mul(input, bp_err, 1.0, gconf.momentum, 'T', 'N')
+    bc:add(bc, bp_err:colsum(), gconf.momentum, 1.0)
+    -- perform update
+    ltp:add(lpc, ltc, 1.0, -gconf.lrate / n)
+    bp:add(bp, bc, 1.0, -gconf.lrate / n)
+    -- weight decay
+    ltp:add(ltp, ltp, 1.0, -gconf.lrate * gconf.wcost)
 end
 
 function nerv.AffineLayer:propagate(input, output)
