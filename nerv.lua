@@ -5,7 +5,7 @@ function nerv.error(fmt, ...)
     error(nerv.utils.printf("Nerv internal error: " .. fmt .. "\n", ...))
 end
 
-function nerv.error_method_not_implement()
+function nerv.error_method_not_implemented()
     nerv.error("method not implemented");
 end
 

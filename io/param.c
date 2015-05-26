@@ -220,12 +220,12 @@ int nerv_param_file_write_chunkdata(lua_State *L) {
     write_param_metadata(pfh->fp, metadata_str, &status);
     CHECK_WRITE(status);
     lua_pushvalue(L, 3);
-    lua_getfield(L, -1, "save");
+    lua_getfield(L, -1, "write");
     if (!lua_isfunction(L, -1))
-        nerv_error(L, "\"save\" method must be implemented");
+        nerv_error(L, "\"write\" method must be implemented");
     lua_pushvalue(L, -2);
-    lua_pushvalue(L, 4); /* pass handle as parameter to save() */
-    lua_call(L, 2, 0); /* let the save() to write */
+    lua_pushvalue(L, 4); /* pass handle as parameter to write() */
+    lua_call(L, 2, 0); /* let the write() to write */
     lua_pop(L, 1);
     size = ftello(pfh->fp) - start;
     fseeko(pfh->fp, start, SEEK_SET);

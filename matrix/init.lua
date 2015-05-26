@@ -38,3 +38,16 @@ function nerv.CuMatrix:__mul__(b)
     c:mul(self, b, 'N', 'N')
     return c
 end
+
+function nerv.CuMatrixFloat.new_from_host(mat)
+    local res = nerv.CuMatrixFloat(mat:nrow(), mat:ncol())
+    res:copy_from(mat)
+    print(res)
+    return res
+end
+
+function nerv.CuMatrixFloat:new_to_host()
+    local res = nerv.MMatrixFloat(self:nrow(), self:ncol())
+    self:copy_to(res)
+    return res
+end
