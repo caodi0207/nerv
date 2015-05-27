@@ -77,7 +77,7 @@ static int nerv_matrix_(newindex)(lua_State *L) {
                                 luaL_checknumber(L, 3));
         }
         else
-            nerv_error(L, "cannot assign a scalar to row vector");
+            nerv_error(L, "cannot assign to row vector");
         lua_pushboolean(L, 1);
         return 2;
     }
