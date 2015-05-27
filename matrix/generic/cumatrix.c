@@ -169,9 +169,30 @@ static int nerv_matrix_(fill)(lua_State *L) {
     return 0;
 }
 
+static int nerv_matrix_(copy_fromd)(lua_State *L) { 
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    CHECK_SAME_DIMENSION(a, b);
+    cudaMemcpy2D(MATRIX_ELEM_PTR(a), a->stride,
+                MATRIX_ELEM_PTR(b), b->stride,
+                sizeof(MATRIX_ELEM) * b->ncol, b->nrow,
+                cudaMemcpyDeviceToDevice);
+    return 0;
+}
+
+static int nerv_matrix_(copy_tod)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    CHECK_SAME_DIMENSION(a, b);
+    cudaMemcpy2D(MATRIX_ELEM_PTR(b), b->stride,
+                MATRIX_ELEM_PTR(a), a->stride,
+                sizeof(MATRIX_ELEM) * a->ncol, a->nrow,
+                cudaMemcpyDeviceToDevice);
+    return 0;
+}
 
 extern const char *MATRIX_CUMATRIX_HOST_TNAME;
-static int nerv_matrix_(copy_from)(lua_State *L) {
+static int nerv_matrix_(copy_fromh)(lua_State *L) { 
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
     CHECK_SAME_DIMENSION(a, b);
@@ -182,7 +203,7 @@ static int nerv_matrix_(copy_from)(lua_State *L) {
     return 0;
 }
 
-static int nerv_matrix_(copy_to)(lua_State *L) {
+static int nerv_matrix_(copy_toh)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
     CHECK_SAME_DIMENSION(a, b);
@@ -215,8 +236,10 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"colsum", nerv_matrix_(colsum)},
     {"rowsum", nerv_matrix_(rowsum)},
     {"rowmax", nerv_matrix_(rowmax)},
-    {"copy_from", nerv_matrix_(copy_from)},
-    {"copy_to", nerv_matrix_(copy_to)},
+    {"copy_fromh", nerv_matrix_(copy_fromh)},
+    {"copy_fromd", nerv_matrix_(copy_fromd)},
+    {"copy_toh", nerv_matrix_(copy_toh)},
+    {"copy_tod", nerv_matrix_(copy_tod)},
     {"trans", nerv_matrix_(trans)},
     /* in-place calc */
     {"add", nerv_matrix_(add)},
