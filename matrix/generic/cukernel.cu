@@ -16,6 +16,18 @@ __global__ void cudak_(sigmoid)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
     b[idx] = 1.0 / (1.0 + exp(-a[idx]));
 }
 
+__global__ void cudak_(sigmoid_grad)(const MATRIX_ELEM *output,
+                                    const MATRIX_ELEM *err,
+                                    MATRIX_ELEM *nerr,
+                                    int nrow, int ncol, int stride) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    long idx;
+    if (i >= nrow || j >= ncol) return;
+    idx = j + i * stride;
+    nerr[idx] = output[idx] * (1.0 - output[idx]) * err[idx];
+}
+
 __global__ void cudak_(softmax_final)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
                         const MATRIX_ELEM *max, const MATRIX_ELEM *deno,
                         int nrow, int ncol, int stride, int mstride) {
@@ -132,6 +144,19 @@ extern "C" {
         cudak_(sigmoid)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b), b->nrow, b->ncol,
             b->stride / sizeof(MATRIX_ELEM));
+    }
+
+    void cudak_(cuda_sigmoid_grad)(const Matrix *output,
+                                    const Matrix *err, Matrix *nerr) {
+        dim3 threadsPerBlock(CUDA_THREADS_N,
+                CUDA_THREADS_N);
+        dim3 numBlocks(CEIL_DIV(nerr->ncol, threadsPerBlock.x),
+                CEIL_DIV(nerr->nrow, threadsPerBlock.y));
+        cudak_(sigmoid_grad)<<<numBlocks, threadsPerBlock>>> \
+            (MATRIX_ELEM_PTR(output), MATRIX_ELEM_PTR(err),
+             MATRIX_ELEM_PTR(nerr),
+             nerr->nrow, nerr->ncol,
+             nerr->stride / sizeof(MATRIX_ELEM));
     }
 
     void cudak_(cuda_rowsum)(const Matrix *a, Matrix *b) {

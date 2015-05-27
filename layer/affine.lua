@@ -11,6 +11,7 @@ function LinearTransParam:write(pfhandle)
 end
 
 function AffineLayer:__init(id, global_conf, ltp, bp)
+    self.id = id
     self.ltp = ltp
     self.bp = bp
     self.gconf = global_conf

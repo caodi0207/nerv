@@ -18,6 +18,12 @@
 #include "driver_types.h"
 #include "cublas_v2.h"
 
+#define CHECK_SAME_DIMENSION(a, b) \
+    do { \
+        if (!(a->nrow == b->nrow && a->ncol == b->ncol)) \
+            nerv_error(L, "Matrices should be of the same dimension"); \
+    } while (0)
+
 static cublasHandle_t cublas_handle;
 
 Matrix *nerv_matrix_(new_)(long nrow, long ncol);
@@ -40,8 +46,7 @@ static int nerv_matrix_(add)(lua_State *L) {
     Matrix *b = luaT_checkudata(L, 3, nerv_matrix_(tname));
     MATRIX_ELEM alpha = luaL_checknumber(L, 4); /* alpha */
     MATRIX_ELEM beta = luaL_checknumber(L, 5); /* alpha */
-    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
-        nerv_error(L, "Matrices should be of the same dimension");
+    CHECK_SAME_DIMENSION(a, b);
     nerv_matrix_(add_)(a, b, c, alpha, beta);
     return 0;
 }
@@ -91,10 +96,21 @@ static int nerv_matrix_(create)(lua_State *L) {
 
 static int nerv_matrix_(sigmoid)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(a->nrow, a->ncol);
+    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    CHECK_SAME_DIMENSION(a, b);
     cudak_(cuda_sigmoid)(a, b);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
+}
+
+static int nerv_matrix_(sigmoid_grad)(lua_State *L) {
+    Matrix *nerr = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *err = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    Matrix *output = luaT_checkudata(L, 3, nerv_matrix_(tname));
+    CHECK_SAME_DIMENSION(nerr, err);
+    CHECK_SAME_DIMENSION(nerr, output);
+    cudak_(cuda_sigmoid_grad)(output, err, nerr);
+    return 0;
 }
 
 static int nerv_matrix_(softmax)(lua_State *L) {
@@ -158,8 +174,7 @@ extern const char *MATRIX_CUMATRIX_HOST_TNAME;
 static int nerv_matrix_(copy_from)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
-    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
-        nerv_error(L, "Matrices should be of the same dimension");
+    CHECK_SAME_DIMENSION(a, b);
     cudaMemcpy2D(MATRIX_ELEM_PTR(a), a->stride,
                 MATRIX_ELEM_PTR(b), b->stride,
                 sizeof(MATRIX_ELEM) * b->ncol, b->nrow,
@@ -170,8 +185,7 @@ static int nerv_matrix_(copy_from)(lua_State *L) {
 static int nerv_matrix_(copy_to)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
-    if (!(a->nrow == b->nrow && a->ncol == b->ncol))
-        nerv_error(L, "Matrices should be of the same dimension");
+    CHECK_SAME_DIMENSION(a, b);
     cudaMemcpy2D(MATRIX_ELEM_PTR(b), b->stride,
                 MATRIX_ELEM_PTR(a), a->stride,
                 sizeof(MATRIX_ELEM) * a->ncol, a->nrow,
@@ -197,7 +211,6 @@ static int nerv_matrix_(trans)(lua_State *L) {
 
 static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"create", nerv_matrix_(create)},
-    {"sigmoid", nerv_matrix_(sigmoid)},
     {"softmax", nerv_matrix_(softmax)},
     {"colsum", nerv_matrix_(colsum)},
     {"rowsum", nerv_matrix_(rowsum)},
@@ -210,6 +223,8 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"mul", nerv_matrix_(mul)},
     {"add_row", nerv_matrix_(add_row)},
     {"fill", nerv_matrix_(fill)},
+    {"sigmoid", nerv_matrix_(sigmoid)},
+    {"sigmoid_grad", nerv_matrix_(sigmoid_grad)},
     {NULL, NULL}
 };
 

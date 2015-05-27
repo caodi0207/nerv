@@ -1,5 +1,6 @@
 #ifdef NERV_GENERIC_CUKERNEL
 void cudak_(cuda_sigmoid)(const Matrix *a, Matrix *b);
+void cudak_(cuda_sigmoid_grad)(const Matrix *output, const Matrix *err, Matrix *nerr);
 void cudak_(cuda_rowsum)(const Matrix *a, Matrix *b);
 void cudak_(cuda_rowmax)(const Matrix *a, Matrix *b);
 void cudak_(cuda_colsum)(const Matrix *a, Matrix *b);
