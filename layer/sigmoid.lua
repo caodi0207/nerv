@@ -10,9 +10,9 @@ function SigmoidLayer:update(bp_err, input, output)
 end
 
 function SigmoidLayer:propagate(input, output)
-    output:sigmoid(input)
+    output[0]:sigmoid(input[0])
 end
 
 function SigmoidLayer:back_propagate(next_bp_err, bp_err, input, output)
-    next_bp_err:sigmoid_grad(bp_err, output)
+    next_bp_err[0]:sigmoid_grad(bp_err[0], output[0])
 end
