@@ -5,6 +5,9 @@ function SigmoidLayer:__init(id, global_conf)
     self.gconf = global_conf
 end
 
+function SigmoidLayer:init()
+end
+
 function SigmoidLayer:update(bp_err, input, output)
     -- no params, therefore do nothing
 end
