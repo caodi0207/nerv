@@ -1,5 +1,5 @@
-m = 10
-n = 10
+m = 3
+n = 4
 fm = nerv.MMatrixFloat(m, n)
 dm = nerv.MMatrixDouble(m, n)
 for i = 0, m - 1 do
@@ -15,10 +15,15 @@ print(dm)
 
 fc = nerv.CuMatrixFloat(m, n)
 dc = nerv.CuMatrixDouble(m, n)
-fc:copy_from(fm)
-dc:copy_from(dm)
+fc:copy_fromh(fm)
+dc:copy_fromh(dm)
+print("fc and dc")
 print(fc)
 print(dc)
+dc[1]:copy_tod(dc[0])
+print("dc[1] copied to dc[0]")
+print(dc)
+print("softmax of fc and dc")
 sfc = fc:create()
 sdc = dc:create()
 sfc:softmax(fc)
