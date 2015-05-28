@@ -4,7 +4,9 @@ OBJS := nerv.o luaT.o common.o \
 		io/init.o io/param.o \
 		examples/oop_example.o
 LIBS := libnerv.so
-LUA_LIBS := matrix/init.lua io/init.lua nerv.lua pl/utils.lua pl/compat.lua layer/init.lua layer/affine.lua
+LUA_LIBS := matrix/init.lua io/init.lua nerv.lua \
+			pl/utils.lua pl/compat.lua \
+			layer/init.lua layer/affine.lua layer/sigmoid.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
 CUDA_BASE := /usr/local/cuda-6.5
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
@@ -13,30 +15,22 @@ LDFLAGS := -L$(CUDA_BASE)/lib64/  -Wl,-rpath=$(CUDA_BASE)/lib64/ -lcudart -lcubl
 CFLAGS := -Wall -Wextra
 OBJ_DIR := build/objs
 LUA_DIR := build/lua
+SUBDIR := matrix io layer examples pl
 NVCC := $(CUDA_BASE)/bin/nvcc
 NVCC_FLAGS := -Xcompiler -fPIC,-Wall,-Wextra
 
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
+OBJ_SUBDIR := $(addprefix $(OBJ_DIR)/,$(SUBDIR))
+LUA_SUBDIR := $(addprefix $(LUA_DIR)/,$(SUBDIR))
 LIBS := $(addprefix $(OBJ_DIR)/,$(LIBS))
 LUA_LIBS := $(addprefix $(LUA_DIR)/,$(LUA_LIBS))
 
-all: luajit $(OBJ_DIR) $(LIBS) $(LUA_DIR) $(LUA_LIBS)
+all: luajit $(OBJ_DIR) $(OBJ_SUBDIR) $(LIBS) $(LUA_DIR) $(LUA_SUBDIR) $(LUA_LIBS)
 luajit:
 	./build_luajit.sh
-$(OBJ_DIR):
-	-mkdir -p $(OBJ_DIR)
-	-mkdir -p $(OBJ_DIR)/matrix
-	-mkdir -p $(LUA_DIR)/matrix
-	-mkdir -p $(OBJ_DIR)/io
-	-mkdir -p $(LUA_DIR)/io
-	-mkdir -p $(LUA_DIR)/pl
-	-mkdir -p $(LUA_DIR)/layer
-	-mkdir -p $(OBJ_DIR)/examples
-$(LUA_DIR):
-	-mkdir -p $(LUA_DIR)
-$(OBJ_DIR)/%.o: %.c
-	gcc -c -o $@ $< $(INCLUDE) -fPIC $(CFLAGS)
-$(OBJ_DIR)/matrix/%.o: matrix/%.c
+$(OBJ_DIR) $(LUA_DIR) $(OBJ_SUBDIR) $(LUA_SUBDIR):
+	-mkdir -p $@
+$(OBJ_DIR)/%.o: %.c $(patsubst /%.o,/%.c,$@)
 	gcc -c -o $@ $< $(INCLUDE) -fPIC $(CFLAGS)
 $(OBJ_DIR)/matrix/cukernel.o: matrix/cukernel.cu
 	$(NVCC) -c -o $@ $< $(INCLUDE) $(NVCC_FLAGS)
@@ -46,9 +40,10 @@ $(OBJ_DIR)/luaT.o:
 	gcc -c -o $@ luaT/luaT.c $(INCLUDE) -fPIC
 $(LIBS): $(OBJS)
 	gcc -shared -o $@ $(OBJS) $(LDFLAGS)
-matrix/cumatrix.c: matrix/generic/cumatrix.c
-matrix/mmatrix.c: matrix/generic/mmatrix.c
-matrix/generic/mmatrix.c matrix/generic/cumatrix.c: matrix/generic/matrix.c
+
+$(OBJ_DIR)/matrix/cumatrix.o: matrix/generic/cumatrix.c matrix/generic/matrix.c
+$(OBJ_DIR)/matrix/mmatrix.o: matrix/generic/mmatrix.c matrix/generic/matrix.c
+
 clean:
 	-rm -rf $(OBJ_DIR)
 	-rm -rf $(LUA_DIR)

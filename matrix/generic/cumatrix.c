@@ -98,9 +98,8 @@ static int nerv_matrix_(sigmoid)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
     CHECK_SAME_DIMENSION(a, b);
-    cudak_(cuda_sigmoid)(a, b);
-    luaT_pushudata(L, b, nerv_matrix_(tname));
-    return 1;
+    cudak_(cuda_sigmoid)(b, a);
+    return 0;
 }
 
 static int nerv_matrix_(sigmoid_grad)(lua_State *L) {
