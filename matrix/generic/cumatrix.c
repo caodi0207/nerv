@@ -27,6 +27,7 @@
 static cublasHandle_t cublas_handle;
 
 Matrix *nerv_matrix_(new_)(long nrow, long ncol);
+void nerv_matrix_(data_free)(Matrix *self);
 
 static void nerv_matrix_(add_)(const Matrix *a, const Matrix *b,
                                 const Matrix *c,
@@ -113,15 +114,16 @@ static int nerv_matrix_(sigmoid_grad)(lua_State *L) {
 }
 
 static int nerv_matrix_(softmax)(lua_State *L) {
-    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *max = nerv_matrix_(new_)(a->nrow, 1);
     Matrix *dno = nerv_matrix_(new_)(a->nrow, 1);
-    Matrix *b = nerv_matrix_(new_)(a->nrow, a->ncol);
     cudak_(cuda_rowmax)(a, max);
     cudak_(cuda_softmax_denominator)(a, max, dno);
     cudak_(cuda_softmax_final)(a, max, dno, b);
-    luaT_pushudata(L, b, nerv_matrix_(tname));
-    return 1;
+    nerv_matrix_(data_free)(max);
+    nerv_matrix_(data_free)(dno);
+    return 0;
 }
 
 static int nerv_matrix_(rowsum)(lua_State *L) {
