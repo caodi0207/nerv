@@ -1,5 +1,5 @@
-m = 10
-n = 10
+m = 4
+n = 4
 fm = nerv.CuMatrixFloat(m, n)
 dm = nerv.CuMatrixDouble(m, n)
 for i = 0, m - 1 do
@@ -23,3 +23,9 @@ print(fs + fs)
 print(ds + ds)
 print(fs - fs)
 print(ds - ds)
+
+a = fs:create()
+a:mul_elem(fs, fs)
+print(a)
+a:log_elem(fs)
+print(a)

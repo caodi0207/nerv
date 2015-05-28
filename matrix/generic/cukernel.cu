@@ -6,6 +6,27 @@
 #define CUDA_THREADS_N 16
 #define CUDA_THREADS_NN (16 * 16)
 #define CEIL_DIV(a, b) (((a) + (b) - 1) / (b))
+__global__ void cudak_(log_elem)(const MATRIX_ELEM *a, MATRIX_ELEM *b, 
+                                int nrow, int ncol, int stride) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    long idx;
+    if (i >= nrow || j >= ncol) return;
+    idx = j + i * stride;
+    b[idx] = log(a[idx]);
+}
+
+__global__ void cudak_(mul_elem)(const MATRIX_ELEM *a, const MATRIX_ELEM *b,
+                                MATRIX_ELEM *c, 
+                                int nrow, int ncol, int stride) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    long idx;
+    if (i >= nrow || j >= ncol) return;
+    idx = j + i * stride;
+    c[idx] = a[idx] * b[idx];
+}
+
 __global__ void cudak_(sigmoid)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
                         int nrow, int ncol, int stride) {
     int j = blockIdx.x * blockDim.x + threadIdx.x;
@@ -136,6 +157,28 @@ __global__ void cudak_(fill)(MATRIX_ELEM *a,
 
 extern "C" {
 #include "../cukernel.h"
+    void cudak_(cuda_log_elem)(const Matrix *a, Matrix *b) {
+        dim3 threadsPerBlock(CUDA_THREADS_N,
+                CUDA_THREADS_N);
+        dim3 numBlocks(CEIL_DIV(b->ncol, threadsPerBlock.x),
+                CEIL_DIV(b->nrow, threadsPerBlock.y));
+        cudak_(log_elem)<<<numBlocks, threadsPerBlock>>> \
+            (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
+             b->nrow, b->ncol, b->stride / sizeof(MATRIX_ELEM));
+    }
+
+    void cudak_(cuda_mul_elem)(const Matrix *a, const Matrix *b,
+                                Matrix *c) {
+        dim3 threadsPerBlock(CUDA_THREADS_N,
+                CUDA_THREADS_N);
+        dim3 numBlocks(CEIL_DIV(b->ncol, threadsPerBlock.x),
+                CEIL_DIV(b->nrow, threadsPerBlock.y));
+        cudak_(mul_elem)<<<numBlocks, threadsPerBlock>>> \
+            (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
+             MATRIX_ELEM_PTR(c),
+             b->nrow, b->ncol, b->stride / sizeof(MATRIX_ELEM));
+    }
+
     void cudak_(cuda_sigmoid)(const Matrix *a, Matrix *b) {
         dim3 threadsPerBlock(CUDA_THREADS_N,
                 CUDA_THREADS_N);

@@ -41,8 +41,9 @@ $(OBJ_DIR)/luaT.o:
 $(LIBS): $(OBJS)
 	gcc -shared -o $@ $(OBJS) $(LDFLAGS)
 
-$(OBJ_DIR)/matrix/cumatrix.o: matrix/generic/cumatrix.c matrix/generic/matrix.c
+$(OBJ_DIR)/matrix/cumatrix.o: matrix/generic/cumatrix.c matrix/generic/matrix.c matrix/generic/cukernel.cu
 $(OBJ_DIR)/matrix/mmatrix.o: matrix/generic/mmatrix.c matrix/generic/matrix.c
+$(OBJ_DIR)/matrix/cukernel.o: matrix/generic/cukernel.cu
 
 clean:
 	-rm -rf $(OBJ_DIR)
