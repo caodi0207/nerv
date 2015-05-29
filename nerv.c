@@ -8,6 +8,7 @@ static const luaL_Reg nerv_utils_methods[] = {
     {"setmetatable", luaT_lua_setmetatable},
     {"getmetatable", luaT_lua_getmetatable},
     {"newmetatable", luaT_lua_newmetatable},
+    {"typename", luaT_lua_typename},
     {NULL, NULL}
 };
 
