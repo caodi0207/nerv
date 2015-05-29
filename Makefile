@@ -45,6 +45,11 @@ $(OBJ_DIR)/matrix/cumatrix.o: matrix/generic/cumatrix.c matrix/generic/matrix.c 
 $(OBJ_DIR)/matrix/mmatrix.o: matrix/generic/mmatrix.c matrix/generic/matrix.c
 $(OBJ_DIR)/matrix/cukernel.o: matrix/generic/cukernel.cu
 
+.PHONY: speech
+
+speech:
+	$(MAKE) -C speech/tnet_io/ OBJ_DIR=$(CURDIR)/build/objs/speech/tnet_io
+
 clean:
 	-rm -rf $(OBJ_DIR)
 	-rm -rf $(LUA_DIR)

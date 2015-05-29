@@ -1,3 +1,9 @@
 [submodule "luajit-2.0"]
 	path = luajit-2.0
 	url = http://luajit.org/git/luajit-2.0.git
+[submodule "nerv-speech"]
+	path = nerv-speech
+	url = https://github.com/Determinant/nerv-speech.git
+[submodule "speech"]
+	path = speech
+	url = https://github.com/Determinant/nerv-speech.git
