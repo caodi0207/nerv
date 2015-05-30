@@ -11,7 +11,7 @@
 #define MATRIX_BASE_TNAME nerv_matrix_host_tname
 #define NERV_GENERIC_MATRIX
 #include "../../common.h"
-#include "../../io/param.h"
+#include "../../io/chunk_file.h"
 
 static void host_matrix_(alloc)(MATRIX_ELEM **dptr, size_t *stride,
                                     long width, long height) {
@@ -46,7 +46,7 @@ static void host_matrix_(init)(lua_State *L) {
 #include "matrix.c"
 
 int nerv_matrix_(load)(lua_State *L) {
-    ParamChunkData *chunk = luaT_checkudata(L, 1, nerv_param_chunk_data_tname);
+    ChunkData *chunk = luaT_checkudata(L, 1, nerv_chunk_data_tname);
     Matrix *self;
     int i, j;
     long nrow, ncol;
@@ -69,8 +69,8 @@ int nerv_matrix_(load)(lua_State *L) {
 }
 
 int nerv_matrix_(save)(lua_State *L) {
-    ParamFileHandle *chunk = luaT_checkudata(L, 2,
-                                nerv_param_file_handle_tname);
+    ChunkFileHandle *chunk = luaT_checkudata(L, 2,
+                                nerv_chunk_file_handle_tname);
     Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
     int i, j;
     long nrow = self->nrow, ncol = self->ncol;

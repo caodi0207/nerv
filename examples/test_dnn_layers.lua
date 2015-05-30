@@ -2,11 +2,12 @@ require 'layer.affine'
 require 'layer.sigmoid'
 require 'layer.softmax_ce'
 
-global_conf = {lrate = 0.8, wcost = 1e-6, momentum = 0.9}
+global_conf = {lrate = 0.8, wcost = 1e-6,
+                momentum = 0.9, mat_type = nerv.CuMatrixFloat}
 
-pf = nerv.ParamFile("affine.param", "r")
-ltp = pf:read_param("a")
-bp = pf:read_param("b")
+pf = nerv.ChunkFile("affine.param", "r")
+ltp = pf:read_chunk("a", global_conf)
+bp = pf:read_chunk("b", global_conf)
 
 -- print(bp.trans)
 
@@ -18,7 +19,7 @@ af:init()
 sg:init()
 sm:init()
 
-df = nerv.ParamFile("input.param", "r")
+df = nerv.ChunkFile("input.param", "r")
 
 label = nerv.CuMatrixFloat(10, 2048)
 label:fill(0)
@@ -26,7 +27,7 @@ for i = 0, 9 do
     label[i][i] = 1.0
 end
 
-input1 = {[0] = df:read_param("input").trans}
+input1 = {[0] = df:read_chunk("input", global_conf).trans}
 output1 = {[0] = nerv.CuMatrixFloat(10, 2048)}
 input2 = output1
 output2 = {[0] = nerv.CuMatrixFloat(10, 2048)}

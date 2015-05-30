@@ -2,7 +2,7 @@
 BUILD_DIR := $(CURDIR)/build
 OBJS := nerv.o luaT.o common.o \
 		matrix/mmatrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o \
-		io/init.o io/param.o \
+		io/init.o io/chunk_file.o \
 		examples/oop_example.o
 LIBS := libnerv.so
 LUA_LIBS := matrix/init.lua io/init.lua nerv.lua \
@@ -56,3 +56,4 @@ speech:
 clean:
 	-rm -rf $(OBJ_DIR)
 	-rm -rf $(LUA_DIR)
+	-rm -rf $(LIB_DIR)

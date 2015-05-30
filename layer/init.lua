@@ -2,12 +2,9 @@
 
 local Param = nerv.class('nerv.Param')
 
-function nerv.Param:__init(id)
+function nerv.Param:__init(id, global_conf)
     self.id = id
-end
-
-function nerv.Param:init(id)
-    nerv.error_method_not_implemented()
+    self.gconf = global_conf
 end
 
 function nerv.Param:get_info()
@@ -28,7 +25,11 @@ end
 
 local Layer = nerv.class('nerv.Layer')
 
-function nerv.Layer:_init(id, global_conf, ...)
+function nerv.Layer:__init(id, global_conf, ...)
+    nerv.error_method_not_implemented()
+end
+
+function nerv.Layer:init(id)
     nerv.error_method_not_implemented()
 end
 

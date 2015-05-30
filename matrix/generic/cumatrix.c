@@ -90,7 +90,6 @@ static int nerv_matrix_(mul)(lua_State *L) {
 
 static int nerv_matrix_(create)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    fprintf(stderr, "create\n");
     Matrix *b = nerv_matrix_(new_)(a->nrow, a->ncol);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;

@@ -1,4 +1,4 @@
-function nerv.ParamFile:write_chunkdata(metadata, writer)
+function nerv.ChunkFile:write_chunkdata(metadata, writer)
     if type(metadata) ~= "table" then
         nerv.error("metadata should be a Lua table")
         return
@@ -6,25 +6,25 @@ function nerv.ParamFile:write_chunkdata(metadata, writer)
     return self:_write_chunkdata(table.tostring(metadata), writer)
 end
 
-function nerv.ParamFile:write_param(param)
-    local id = param.id
-    local type = param.__typename
+function nerv.ChunkFile:write_chunk(chunk)
+    local id = chunk.id
+    local type = chunk.__typename
     if id == nil then
-        nerv_error("id of param %s must be specified", type)
+        nerv_error("id of chunk %s must be specified", type)
     end
     self:write_chunkdata({id = id,
                             type = type,
-                            info = param:get_info()}, param)
+                            info = chunk:get_info()}, chunk)
 end
 
-function nerv.ParamFile:read_param(id)
+function nerv.ChunkFile:read_chunk(id, global_conf)
     local metadata = self.metadata[id]
     if metadata == nil then
-        nerv_error("param with id %s does not exist", id)
+        nerv_error("chunk with id %s does not exist", id)
     end
-    local param = assert(loadstring("return " ..
-                    metadata.type .. "(\"" .. id .. "\")"))()
-    param:set_info(metadata.info)
-    param:read(self:get_chunkdata(id))
-    return param
+    local chunk_type = assert(loadstring("return " .. metadata.type))()
+    local chunk = chunk_type(id, global_conf)
+    chunk:set_info(metadata.info)
+    chunk:read(self:get_chunkdata(id))
+    return chunk
 end
