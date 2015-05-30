@@ -2,6 +2,7 @@ m = 4
 n = 4
 fm = nerv.CuMatrixFloat(m, n)
 dm = nerv.CuMatrixDouble(m, n)
+print(type(dm), nerv.typename(dm))
 for i = 0, m - 1 do
     for j = 0, n - 1 do
         -- local t = math.random(10)
