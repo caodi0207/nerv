@@ -1,4 +1,5 @@
 .PHONY: all clean luajit
+BUILD_DIR := $(CURDIR)/build
 OBJS := nerv.o luaT.o common.o \
 		matrix/mmatrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o \
 		io/init.o io/param.o \
@@ -13,8 +14,9 @@ CUDA_INCLUDE := -I $(CUDA_BASE)/include/
 INCLUDE += $(CUDA_INCLUDE)
 LDFLAGS := -L$(CUDA_BASE)/lib64/  -Wl,-rpath=$(CUDA_BASE)/lib64/ -lcudart -lcublas
 CFLAGS := -Wall -Wextra
-OBJ_DIR := build/objs
-LUA_DIR := build/lua
+OBJ_DIR := $(BUILD_DIR)/objs
+LUA_DIR := $(BUILD_DIR)/lua
+LIB_DIR := $(BUILD_DIR)/lib
 SUBDIR := matrix io layer examples pl
 NVCC := $(CUDA_BASE)/bin/nvcc
 NVCC_FLAGS := -Xcompiler -fPIC,-Wall,-Wextra
@@ -22,13 +24,13 @@ NVCC_FLAGS := -Xcompiler -fPIC,-Wall,-Wextra
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 OBJ_SUBDIR := $(addprefix $(OBJ_DIR)/,$(SUBDIR))
 LUA_SUBDIR := $(addprefix $(LUA_DIR)/,$(SUBDIR))
-LIBS := $(addprefix $(OBJ_DIR)/,$(LIBS))
+LIBS := $(addprefix $(BUILD_DIR)/lib/,$(LIBS))
 LUA_LIBS := $(addprefix $(LUA_DIR)/,$(LUA_LIBS))
 
-all: luajit $(OBJ_DIR) $(OBJ_SUBDIR) $(LIBS) $(LUA_DIR) $(LUA_SUBDIR) $(LUA_LIBS)
+all: luajit $(OBJ_DIR) $(LIB_DIR) $(OBJ_SUBDIR) $(LIBS) $(LUA_DIR) $(LUA_SUBDIR) $(LUA_LIBS)
 luajit:
 	./build_luajit.sh
-$(OBJ_DIR) $(LUA_DIR) $(OBJ_SUBDIR) $(LUA_SUBDIR):
+$(OBJ_DIR) $(LIB_DIR) $(LUA_DIR) $(OBJ_SUBDIR) $(LUA_SUBDIR):
 	-mkdir -p $@
 $(OBJ_DIR)/%.o: %.c $(patsubst /%.o,/%.c,$@)
 	gcc -c -o $@ $< $(INCLUDE) -fPIC $(CFLAGS)
@@ -48,7 +50,8 @@ $(OBJ_DIR)/matrix/cukernel.o: matrix/generic/cukernel.cu
 .PHONY: speech
 
 speech:
-	$(MAKE) -C speech/tnet_io/ OBJ_DIR=$(CURDIR)/build/objs/speech/tnet_io
+	-mkdir -p build/objs/speech/tnet_io
+	$(MAKE) -C speech/ BUILD_DIR=$(BUILD_DIR) LIB_DIR=$(LIB_DIR) OBJ_DIR=$(CURDIR)/build/objs/speech/
 
 clean:
 	-rm -rf $(OBJ_DIR)

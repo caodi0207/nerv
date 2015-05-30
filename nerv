@@ -1,2 +1,2 @@
 #!/bin/bash
-exec 'build/luajit-2.0/bin/luajit' -e "package.cpath=\"${PWD}/build/objs/?.so\"" -e "package.path=\"${PWD}/build/lua/?/init.lua;${PWD}/build/lua/?.lua\"" -e "require 'nerv'" "$@"
+exec 'build/luajit-2.0/bin/luajit' -e "package.cpath=\"${PWD}/build/lib/?.so\"" -e "package.path=\"${PWD}/build/lua/?/init.lua;${PWD}/build/lua/?.lua\"" -e "require 'nerv'" "$@"
