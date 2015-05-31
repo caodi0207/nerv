@@ -8,12 +8,12 @@
 extern const char *nerv_matrix_(tname);
 extern const char *MATRIX_BASE_TNAME;
 
-void nerv_matrix_(data_free)(Matrix *self) {
+void nerv_matrix_(data_free)(lua_State *L, Matrix *self) {
     assert(*self->data_ref > 0);
     if (--(*self->data_ref) == 0)
     {
         /* free matrix data */
-        MATRIX_DATA_FREE(MATRIX_ELEM_PTR(self));
+        MATRIX_DATA_FREE(L, MATRIX_ELEM_PTR(self));
         free(self->data_ref);
         free(self);
     }
@@ -23,12 +23,12 @@ void nerv_matrix_(data_retain)(Matrix *self) {
     (*self->data_ref)++;
 }
 
-Matrix *nerv_matrix_(new_)(long nrow, long ncol) {
+Matrix *nerv_matrix_(new_)(lua_State *L, long nrow, long ncol) {
     Matrix *self = (Matrix *)malloc(sizeof(Matrix));
     self->nrow = nrow;
     self->ncol = ncol;
     self->nmax = self->nrow * self->ncol;
-    MATRIX_DATA_ALLOC(&MATRIX_ELEM_PTR(self), &self->stride,
+    MATRIX_DATA_ALLOC(L, &MATRIX_ELEM_PTR(self), &self->stride,
                         sizeof(MATRIX_ELEM) * self->ncol, self->nrow);
     self->data_ref = (long *)malloc(sizeof(long));
     *self->data_ref = 0;
@@ -37,7 +37,7 @@ Matrix *nerv_matrix_(new_)(long nrow, long ncol) {
 }
 
 int nerv_matrix_(new)(lua_State *L) {
-    luaT_pushudata(L, nerv_matrix_(new_)(luaL_checkinteger(L, 1),
+    luaT_pushudata(L, nerv_matrix_(new_)(L, luaL_checkinteger(L, 1),
                                         luaL_checkinteger(L, 2)),
                     nerv_matrix_(tname));
     return 1;
@@ -45,7 +45,7 @@ int nerv_matrix_(new)(lua_State *L) {
 
 int nerv_matrix_(destroy)(lua_State *L) {
     Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    nerv_matrix_(data_free)(self);
+    nerv_matrix_(data_free)(L, self);
     return 1;
 }
 
@@ -73,7 +73,7 @@ static int nerv_matrix_(newindex)(lua_State *L) {
         {
             if (idx < 0 || idx >= self->ncol)
                 nerv_error(L, "index must be within range [0, %d)", self->ncol);
-            MATRIX_DATA_WRITE(MATRIX_ELEM_PTR(self), idx,
+            MATRIX_DATA_WRITE(L, MATRIX_ELEM_PTR(self), idx,
                                 luaL_checknumber(L, 3));
         }
         else
@@ -98,7 +98,7 @@ static int nerv_matrix_(index)(lua_State *L) {
         {
             if (idx < 0 || idx >= self->ncol)
                 nerv_error(L, "index must be within range [0, %d)", self->ncol);
-            lua_pushnumber(L, MATRIX_DATA_READ(MATRIX_ELEM_PTR(self), idx));
+            lua_pushnumber(L, MATRIX_DATA_READ(L, MATRIX_ELEM_PTR(self), idx));
         }
         else
         {

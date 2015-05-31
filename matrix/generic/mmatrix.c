@@ -1,21 +1,22 @@
 #ifdef NERV_GENERIC_MMATRIX
 #include "matrix.h"
 #include "elem_type.h"
-#define MATRIX_DATA_FREE(ptr) free(ptr)
-#define MATRIX_DATA_ALLOC(dptr, stride, width, height) \
-                            host_matrix_(alloc)(dptr, stride, width, height)
-#define MATRIX_DATA_STRIDE(ncol) (sizeof(MATRIX_ELEM) * (ncol))
-#define MATRIX_DATA_WRITE(data, idx, val) (data[idx] = val)
-#define MATRIX_DATA_READ(data, idx) (data[idx])
+#define MATRIX_DATA_FREE(L, ptr) free(ptr)
+#define MATRIX_DATA_ALLOC(L, dptr, stride, width, height) \
+                            host_matrix_(alloc)(L, dptr, stride, width, height)
+#define MATRIX_DATA_WRITE(L, data, idx, val) (data[idx] = val)
+#define MATRIX_DATA_READ(L, data, idx) (data[idx])
 #define MATRIX_INIT(L) host_matrix_(init)(L)
 #define MATRIX_BASE_TNAME nerv_matrix_host_tname
 #define NERV_GENERIC_MATRIX
 #include "../../common.h"
 #include "../../io/chunk_file.h"
 
-static void host_matrix_(alloc)(MATRIX_ELEM **dptr, size_t *stride,
-                                    long width, long height) {
-    *dptr = (MATRIX_ELEM *)malloc(width * height);
+static void host_matrix_(alloc)(lua_State *L,
+                                MATRIX_ELEM **dptr, size_t *stride,
+                                long width, long height) {
+    if ((*dptr = (MATRIX_ELEM *)malloc(width * height)) == NULL)
+        nerv_error(L, "mmatrix insufficient memory");
     *stride = width;
 }
 
@@ -53,7 +54,7 @@ int nerv_matrix_(load)(lua_State *L) {
     FILE *fp = chunk->fp;
     if (fscanf(fp, "%ld %ld", &nrow, &ncol) != 2)
         return 0;
-    self = nerv_matrix_(new_)(nrow, ncol);
+    self = nerv_matrix_(new_)(L, nrow, ncol);
     for (i = 0; i < nrow; i++)
     {
         MATRIX_ELEM *row = MATRIX_ROW_PTR(self, i);
