@@ -24,7 +24,7 @@ The pull&merge request can be found on your dashboard in github. See this [sync-
 ##Nerv Packages##
 * __luaT__  
 Nerv uses [luaT]\(a [Torch] library\) to define lua class in C.
-* __[The Nerv OOP](doc/nerv_class.md)__
+* __[The Nerv OOP](doc/nerv_class.md)__  
 Enables object-oriented programming in Nerv.
 * __[The Nerv utility functions](doc/nerv.md)__  
 Inlcudes some utility functions from luaT to implement __Nerv.Class__.
