@@ -35,4 +35,5 @@ void nerv_matrix_init(lua_State *L) {
                             NULL, NULL, NULL);
     nerv_matrix_host_float_init(L);
     nerv_matrix_host_double_init(L);
+    nerv_matrix_host_int_init(L);
 }
