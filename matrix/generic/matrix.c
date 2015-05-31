@@ -2,9 +2,6 @@
 #include "../../common.h"
 #include "matrix.h"
 
-#define MATRIX_ROW_PTR(self, row) \
-    (MATRIX_ELEM *)((char *)MATRIX_ELEM_PTR(self) + (row) * (self)->stride)
-
 extern const char *nerv_matrix_(tname);
 extern const char *MATRIX_BASE_TNAME;
 

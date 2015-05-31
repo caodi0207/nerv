@@ -8,8 +8,12 @@ typedef struct Matrix {
     union {
         float *f;
         double *d;
+        long *i;
     } data;                   /* pointer to actual storage */
     long *data_ref;
 } Matrix;
+
+#define MATRIX_ROW_PTR(self, row) \
+    (MATRIX_ELEM *)((char *)MATRIX_ELEM_PTR(self) + (row) * (self)->stride)
 
 #endif
