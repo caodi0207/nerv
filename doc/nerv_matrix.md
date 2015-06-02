@@ -32,8 +32,8 @@ In the methods description below, __Matrix__ could be __Nerv.CuMatrixFloat__, __
 Returns a __Matrix__ object of `nrow` rows and `ncol` columns.
 * __Element_type = Matrix.get_elem(Matrix self, int index)__  
 Returns the element value at the specific index(treating the matrix as a vector). The index should be less than `nmax` of the matrix.
-* __void Matrix.set_elem(Matrix self, int index, Element_type v)__  
-Set the value at `index` to be `v`.
+* __void Matrix.set_elem(Matrix self, int index, Element_type value)__  
+Set the value at `index` to be `value`.
 * __int Matrix.ncol(Matrix self)__  
 Get `ncol`, the number of columns.
 * __int Matrix.nrow(Matrix self)__  
@@ -42,4 +42,6 @@ Get `nrow`, the number of rows.
 Returns the value(not a pointer) of space the `data_ref` pointer pointed to. This function is mainly for debugging.  
 * __Matrix/Element\_type, boolean Matrix.\_\_index\_\_(Matrix self, int index)__  
 If the matrix has more than one row, will return the row at `index` as a __Matrix__ . Otherwise it will return the value at `index`.
-* __boolean Matrix.\_\_newindex\_\_(Matrix self, int )__
+* __void Matrix.\_\_newindex\_\_(Matrix self, int index, Element_type value)__
+Set the element at `index` to be `value`.
+---
