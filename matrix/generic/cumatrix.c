@@ -74,7 +74,7 @@ static int nerv_matrix_(mul)(lua_State *L) {
     if (an != bm)
         nerv_error(L, "Wrong dimension of multipliers");
 /*    MATRIX_ELEM alpha = 1.0f, beta = 0.0f; */
-    CUBLAS_SAFE_CALL(
+    CUBLAS_SAFE_CALL( //Because matrix in Nerv is row-major, here b comes first
             NERV_CUBLAS_(gemm)(cublas_handle, tb, ta,
                 bn, am, bm,
                 &alpha,
