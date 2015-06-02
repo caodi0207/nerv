@@ -50,15 +50,14 @@ for i = 0, 3 do
     sg:propagate(input2, output2)
     sm:propagate(input3, output3)
 
-
     -- back_propagate
     sm:back_propagate(err_output1, err_input1, input3, output3)
-    sm:update(err_input1, input3, output3)
-
     sg:back_propagate(err_output2, err_input2, input2, output2)
-    sg:update(err_input2, input2, output2)
-
     af:back_propagate(err_output3, err_input3, input1, output1)
+
+    -- update
+    sm:update(err_input1, input3, output3)
+    sg:update(err_input2, input2, output2)
     af:update(err_input3, input1, output1)
 
 

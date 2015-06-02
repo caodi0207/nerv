@@ -71,6 +71,11 @@ function table.tostring(tbl)
   return "{" .. table.concat(result, ",") .. "}"
 end
 
+function nerv.get_type(typename)
+    return assert(loadstring("return " .. typename))()
+end
+
 require 'matrix.init'
 require 'io.init'
 require 'layer.init'
+require 'nn.init'
