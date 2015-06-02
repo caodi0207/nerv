@@ -219,6 +219,10 @@ function nerv.DAGLayer:back_propagate(next_bp_err, bp_err, input, output)
     self:set_outputs(output)
     for i = #self.queue, 1, -1 do
         local ref = self.queue[i]
+        -- print(ref.layer.id)
         ref.layer:back_propagate(ref.err_outputs, ref.err_inputs, ref.inputs, ref.outputs)
+         -- if #ref.err_outputs > 0 then
+         --     print(ref.err_outputs[1])
+         -- end
     end
 end
