@@ -70,4 +70,9 @@ It sets the content of __Matrix__ `self` to be `beta * self + alpha * ma * mb`. 
 * __void Matrix.add_row(Matrix self, Matrix va, Element_type beta)__  
 It sets the content of __Matrix__ `self`(which should be row vector) to be `self + beta * va`.
 * __void Matrix.fill(Matrix self, Element_type value)__  
-Fill the content of __Matrix__ to be `value`.
+Fill the content of __Matrix__ `self` to be `value`.
+* __void Matrix.sigmoid(Matrix self, Matrix ma)__  
+Set the element of __Matrix__ `self` to be elementwise-sigmoid of `ma`.
+* __void Matrix.sigmoid_grad(Matrix self, Matrix err, Matrix output)__  
+Set the element of __Matrix__ `self`, to be `self[i][j]=err[i][j]*output[i][j]*(1-output[i][j])`. This function is used to propagate sigmoid layer error.
+
