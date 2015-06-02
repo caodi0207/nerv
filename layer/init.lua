@@ -44,3 +44,16 @@ end
 function nerv.Layer:back_propagate(next_bp_err, bp_err, input, output)
     nerv.error_method_not_implemented()
 end
+
+function nerv.Layer:check_dim_len(len_in, len_out)
+    local expected_in = table.getn(self.dim_in)
+    local expected_out = table.getn(self.dim_out)
+    if len_in > 0 and expected_in ~= len_in then
+        nerv.error("layer %s expects %d inputs, %d given",
+                    self.id, len_in, expected_in)
+    end
+    if len_out > 0 and expected_out ~= len_out then
+        nerv.error("layer %s expects %d outputs, %d given",
+                    self.id, len_out, expected_out)
+    end
+end
