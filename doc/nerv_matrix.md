@@ -17,17 +17,17 @@ typedef struct Matrix {
     long *data_ref;
 } Matrix;
 ```
-It is worth mentioning that that `data_ref` is a counter which counts the number of references to its memory space, mind that it will also be increased when a row of the matrix is referenced(`col = m[2]`). A __Nerv__ matrix will deallocate its space when this counter is decreased to zero.   
+It is worth mentioning that that `data_ref` is a counter which counts the number of references to its memory space, mind that it will also be increased when a row of the matrix is referenced(`col = m[2]`). A __Nerv__ matrix will deallocate its space when this counter is decreased to zero.
 Also note that all assigning operation in __Nerv__ is reference copy, you can use `copy_tod` or `copy_toh` method to copy value. Also, row assigning operations like `m1[2]=m2[3]` is forbidden in __Nerv__.
 
 ###Class hierarchy###
-The class hierarchy of the matrix classes can be clearly observed in `matrix/init.c`.   
+The class hierarchy of the matrix classes can be clearly observed in `matrix/init.c`.
 First there is a abstract base class __Nerv.Matrix__, which is inherited by __Nerv.CuMatrix__ and __Nerv.MMatrix__(also abstract).  
 Finally, there is __Nerv.CuMatrixFloat__, __Nerv.CuMatrixDouble__, inheriting __Nerv.CuMatrix__, and __Nerv.MMatrixFloat__, __Nerv.MMatrixDouble__, inheriting __Nerv.MMatrix__.
 
 ##Methods##
 Mind that usually a matrix object can only do calculation with matrix of its own type(a __Nerv.CuMatrixFloat__ matrix can only do add operation with a __Nerv.CuMatrixFloat__).  
-In the methods description below, __Matrix__ could be __Nerv.CuMatrixFloat__, __Nerv.CuMatrixDouble__, __Nerv.MMatrixFloat__ or __Nerv.MMatrixDouble__. __Element_type__ could be `float` or `double`, respectively.    
+In the methods description below, __Matrix__ could be __Nerv.CuMatrixFloat__, __Nerv.CuMatrixDouble__, __Nerv.MMatrixFloat__ or __Nerv.MMatrixDouble__. __Element_type__ could be `float` or `double`, respectively.
 * __Matrix = Matrix(int nrow, int ncol)__  
 Returns a __Matrix__ object of `nrow` rows and `ncol` columns.
 * __Element_type = Matrix.get_elem(Matrix self, int index)__  
@@ -75,4 +75,5 @@ Fill the content of __Matrix__ `self` to be `value`.
 Set the element of __Matrix__ `self` to be elementwise-sigmoid of `ma`.
 * __void Matrix.sigmoid_grad(Matrix self, Matrix err, Matrix output)__  
 Set the element of __Matrix__ `self`, to be `self[i][j]=err[i][j]*output[i][j]*(1-output[i][j])`. This function is used to propagate sigmoid layer error.
-
+* __void Matrix.softmax(Matrix self, Matrix a)__  
+Calculate a row-by-row softmax of __Matrix__ `a` and save the result in `self`.
