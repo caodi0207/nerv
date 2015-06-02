@@ -1,13 +1,14 @@
-local LinearTransParam = nerv.class('nerv.LinearTransParam', 'nerv.Param')
-local BiasParam = nerv.class('nerv.BiasParam', 'nerv.LinearTransParam')
+local MatrixParam = nerv.class('nerv.MatrixParam', 'nerv.Param')
+local LinearTransParam = nerv.class('nerv.LinearTransParam', 'nerv.MatrixParam')
+local BiasParam = nerv.class('nerv.BiasParam', 'nerv.MatrixParam')
 local AffineLayer = nerv.class('nerv.AffineLayer', 'nerv.Layer')
 
-function LinearTransParam:read(pcdata)
+function MatrixParam:read(pcdata)
     self.trans = self.gconf.mat_type.new_from_host(
                     nerv.MMatrixFloat.load(pcdata))
 end
 
-function LinearTransParam:write(pfhandle)
+function MatrixParam:write(pfhandle)
     self.trans:new_to_host():save(pfhandle)
 end
 

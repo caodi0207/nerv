@@ -6,7 +6,7 @@ function nerv.Matrix:__tostring__()
     if self.fmt then
         fmt = self.fmt
     else
-        fmt = "%.10f "
+        fmt = "%.8f "
     end
     if nrow == 1 then
         for col = 0, ncol - 1 do
