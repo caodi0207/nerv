@@ -23,7 +23,7 @@ Also note that all assigning operation in __Nerv__ is reference copy, you can us
 ###Class hierarchy###
 The class hierarchy of the matrix classes can be clearly observed in `matrix/init.c`.
 First there is a abstract base class __Nerv.Matrix__, which is inherited by __Nerv.CuMatrix__ and __Nerv.MMatrix__(also abstract).  
-Finally, there is __Nerv.CuMatrixFloat__, __Nerv.CuMatrixDouble__, inheriting __Nerv.CuMatrix__, and __Nerv.MMatrixFloat__, __Nerv.MMatrixDouble__, inheriting __Nerv.MMatrix__.
+Finally, there is __Nerv.CuMatrixFloat__, __Nerv.CuMatrixDouble__, inheriting __Nerv.CuMatrix__, and __Nerv.MMatrixFloat__, __Nerv.MMatrixDouble__, __Nerv.MMatrixInt__ , inheriting __Nerv.MMatrix__.
 
 ##Methods##
 Mind that usually a matrix object can only do calculation with matrix of its own type(a __Nerv.CuMatrixFloat__ matrix can only do add operation with a __Nerv.CuMatrixFloat__).  
@@ -77,3 +77,9 @@ Set the element of __Matrix__ `self` to be elementwise-sigmoid of `ma`.
 Set the element of __Matrix__ `self`, to be `self[i][j]=err[i][j]*output[i][j]*(1-output[i][j])`. This function is used to propagate sigmoid layer error.
 * __void Matrix.softmax(Matrix self, Matrix a)__  
 Calculate a row-by-row softmax of __Matrix__ `a` and save the result in `self`.
+* __void Matrix.mul_elem(Matrix self, Matrix ma, Matrix mb)__  
+Calculate element-wise multiplication of __Matrix__ `ma` and `mb`, store the result in `self`.
+* __void Matrix.log_elem(Matrix self, Matrix ma)__  
+Calculate element-wise log of __Matrix__ `ma`, store the result in `self`.
+* __void Matrix.copy_rows_fromh_by_idx(Matrix self, MMatrix ma, MMatrixInt idx)__  
+`idx` should be a row vector. This function copy the rows of `ma` to `self` according to `idx`, in other words, it assigns `ma[idx[i]]` to `self[i]`.
