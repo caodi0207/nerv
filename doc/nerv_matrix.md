@@ -83,3 +83,9 @@ Calculate element-wise multiplication of __Matrix__ `ma` and `mb`, store the res
 Calculate element-wise log of __Matrix__ `ma`, store the result in `self`.
 * __void Matrix.copy_rows_fromh_by_idx(Matrix self, MMatrix ma, MMatrixInt idx)__  
 `idx` should be a row vector. This function copy the rows of `ma` to `self` according to `idx`, in other words, it assigns `ma[idx[i]]` to `self[i]`.
+* __void Matrix.expand_frm(Matrix self, Matrix a, int context)__  
+Treating each row of `a` as speech feature, and do a feature expansion. The `self` should of size `(a.nrow, a.ncol * (context * 2 + 1))`. `self[i]` will be `(a[i-context] a[i-context+1] ... a[i] a[i+1] a[i+context])`. `a[0]` and `a[nrow]` will be copied to extend the index range.
+* __void Matrix.rearrange_frm(Matrix self, Matrix a, int step)__  
+Rearrange `a` according to its feature dimension. The `step` is the length of context. So, `self[i][j]` will be assigned `a[i][j / step + (j % step) * (a.ncol / step)]`. `a` and `self` should be of the same size and `step` should be divisible by `a.ncol`.
+* __void Matrix.scale_row(Matrix self, Matrix scale)__  
+Scale each column of `self` according to a vector `scale`. `scale` should be of size `1 * self.ncol`.
