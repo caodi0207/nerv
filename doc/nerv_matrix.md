@@ -68,7 +68,7 @@ It sets the content of __Matrix__ `self` to be `alpha * ma + beta * mb`.__Matrix
 * __void Matrix.mul(Matrix self, Matrix ma, Matrix mb, Element_type alpha, Element_type beta, [string ta, string tb])__  
 It sets the content of __Matrix__ `self` to be `beta * self + alpha * ma * mb`. `ta` and `tb` is optional, if `ta` is 'T', then `ma` will be transposed, also if `tb` is 'T', `mb` will be transposed.
 * __void Matrix.add_row(Matrix self, Matrix va, Element_type beta)__  
-It sets the content of __Matrix__ `self`(which should be row vector) to be `self + beta * va`.
+Add `beta * va` to every row of __Matrix__ `self`.
 * __void Matrix.fill(Matrix self, Element_type value)__  
 Fill the content of __Matrix__ `self` to be `value`.
 * __void Matrix.sigmoid(Matrix self, Matrix ma)__  
