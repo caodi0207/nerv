@@ -22,7 +22,7 @@ function nerv.ChunkFile:read_chunk(id, global_conf)
     if metadata == nil then
         nerv.error("chunk with id %s does not exist", id)
     end
-    local chunk_type = assert(loadstring("return " .. metadata.type))()
+    local chunk_type = nerv.get_type(metadata.type)
     local chunk = chunk_type(id, global_conf)
     chunk:set_info(metadata.info)
     chunk:read(self:get_chunkdata(id))
