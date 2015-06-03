@@ -4,7 +4,7 @@ local BiasParam = nerv.class('nerv.BiasParam', 'nerv.MatrixParam')
 local AffineLayer = nerv.class('nerv.AffineLayer', 'nerv.Layer')
 
 function MatrixParam:read(pcdata)
-    self.trans = self.gconf.mat_type.new_from_host(
+    self.trans = self.gconf.cumat_type.new_from_host(
                     nerv.MMatrixFloat.load(pcdata))
 end
 

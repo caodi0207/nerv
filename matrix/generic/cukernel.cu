@@ -187,6 +187,15 @@ __global__ void cudak_(scale_row)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
     b[j + i * stride] *= a[j];
 }
 
+__global__ void cudak_(decompress)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
+                                    int nrow, int ncol,
+                                    int stride_a, int stride_b) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nrow || j >= ncol) return;
+    b[lrintf(a[j + i * stride_a]) + i * stride_b] = 1.0;
+}
+
 extern "C" {
 #include "../cukernel.h"
     void cudak_(cuda_log_elem)(const Matrix *a, Matrix *b) {
@@ -384,6 +393,16 @@ extern "C" {
         cudak_(scale_row)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
              b->nrow, b->ncol, b->stride / sizeof(MATRIX_ELEM));
+    }
+
+    void cudak_(cuda_decompress)(const Matrix *a, Matrix *b) {
+        dim3 threadsPerBlock(1, CUDA_THREADS_NN);
+        dim3 numBlocks(1, CEIL_DIV(a->nrow, threadsPerBlock.y));
+        cudak_(decompress)<<<numBlocks, threadsPerBlock>>> \
+            (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
+             a->nrow, a->ncol,
+             a->stride / sizeof(MATRIX_ELEM),
+             b->stride / sizeof(MATRIX_ELEM));
     }
 }
 #endif

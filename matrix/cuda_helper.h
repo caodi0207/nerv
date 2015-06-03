@@ -23,7 +23,7 @@
 #define CHECK_SAME_DIMENSION(a, b) \
     do { \
         if (!(a->nrow == b->nrow && a->ncol == b->ncol)) \
-            nerv_error(L, "Matrices should be of the same dimension"); \
+            nerv_error(L, "matrices should be of the same dimension"); \
     } while (0)
 
 static const char *cublasGetErrorString(cublasStatus_t err) {

@@ -22,7 +22,8 @@ function nerv.Matrix:__tostring__()
             table.insert(strt, "\n")
         end
     end
-    table.insert(strt, string.format("[Matrix %d x %d]", nrow, ncol))
+    table.insert(strt, string.format(
+        "[%s %d x %d]", self.__typename, nrow, ncol))
     return table.concat(strt)
 end
 
