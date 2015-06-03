@@ -89,3 +89,13 @@ Treating each row of `a` as speech feature, and do a feature expansion. The `sel
 Rearrange `a` according to its feature dimension. The `step` is the length of context. So, `self[i][j]` will be assigned `a[i][j / step + (j % step) * (a.ncol / step)]`. `a` and `self` should be of the same size and `step` should be divisible by `a.ncol`.
 * __void Matrix.scale_row(Matrix self, Matrix scale)__  
 Scale each column of `self` according to a vector `scale`. `scale` should be of size `1 * self.ncol`.
+* __Matrix Matrix.\_\_add\_\_(Matrix ma, Matrix mb)__  
+Returns a new __Matrix__ which stores the result of `ma+mb`.
+* __Matrix Matrix.\_\_sub\_\_(Matrix ma, Matrix mb)__  
+Returns a new __Matrix__ which stores the result of `ma-mb`.
+* __Matrix Matrix.\_\_mul\_\_(Matrix ma, Matrix mb)__  
+Returns a new __Matrix__ which stores the result of `ma*mb`.
+* __CuMatrix CuMatrix.new_from_host(MMatrix m)__  
+Return a new __CuMatrix__ which is a copy of `m`.
+* __MMatrix CuMatrix.new_to_host(CuMatrix self)__  
+Return a new __MMatrix__ which is a copy of `self`.
