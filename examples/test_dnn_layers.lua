@@ -3,7 +3,7 @@ require 'layer.sigmoid'
 require 'layer.softmax_ce'
 
 global_conf = {lrate = 0.8, wcost = 1e-6,
-                momentum = 0.9, mat_type = nerv.CuMatrixFloat}
+                momentum = 0.9, cumat_type = nerv.CuMatrixFloat}
 
 pf = nerv.ChunkFile("affine.param", "r")
 ltp = pf:read_chunk("a", global_conf)

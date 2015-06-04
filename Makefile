@@ -9,7 +9,8 @@ LUA_LIBS := matrix/init.lua io/init.lua nerv.lua \
 			pl/utils.lua pl/compat.lua \
 			layer/init.lua layer/affine.lua layer/sigmoid.lua layer/softmax_ce.lua \
 			layer/window.lua layer/bias.lua \
-			nn/init.lua nn/layer_repo.lua nn/param_repo.lua nn/layer_dag.lua
+			nn/init.lua nn/layer_repo.lua nn/param_repo.lua nn/layer_dag.lua \
+			io/sgd_buffer.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
 CUDA_BASE := /usr/local/cuda-6.5
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
@@ -53,7 +54,7 @@ $(OBJ_DIR)/matrix/cukernel.o: matrix/generic/cukernel.cu
 
 speech:
 	-mkdir -p build/objs/speech/tnet_io
-	$(MAKE) -C speech/ BUILD_DIR=$(BUILD_DIR) LIB_DIR=$(LIB_DIR) OBJ_DIR=$(CURDIR)/build/objs/speech/
+	$(MAKE) -C speech/ BUILD_DIR=$(BUILD_DIR) LIB_DIR=$(LIB_DIR) OBJ_DIR=$(CURDIR)/build/objs/speech/ LUA_DIR=$(LUA_DIR)
 
 clean:
 	-rm -rf $(OBJ_DIR)

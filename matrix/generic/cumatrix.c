@@ -74,7 +74,8 @@ static int nerv_matrix_(mul)(lua_State *L) {
     if (an != bm)
         nerv_error(L, "Wrong dimension of multipliers");
 /*    MATRIX_ELEM alpha = 1.0f, beta = 0.0f; */
-    CUBLAS_SAFE_CALL( //Because matrix in Nerv is row-major, here b comes first
+    /* Because matrix in Nerv is row-major, here b comes first */
+    CUBLAS_SAFE_CALL(
             NERV_CUBLAS_(gemm)(cublas_handle, tb, ta,
                 bn, am, bm,
                 &alpha,
@@ -113,9 +114,11 @@ static int nerv_matrix_(sigmoid_grad)(lua_State *L) {
 static int nerv_matrix_(softmax)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *max = nerv_matrix_(new_)(L, a->nrow, 1);
-    Matrix *dno = nerv_matrix_(new_)(L, a->nrow, 1);
+    Matrix *max;
+    Matrix *dno;
     CHECK_SAME_DIMENSION(a, b);
+    max = nerv_matrix_(new_)(L, a->nrow, 1);
+    dno = nerv_matrix_(new_)(L, a->nrow, 1);
     cudak_(cuda_rowmax)(a, max);
     cudak_(cuda_softmax_denominator)(a, max, dno);
     cudak_(cuda_softmax_final)(a, max, dno, b);
@@ -168,26 +171,22 @@ static int nerv_matrix_(fill)(lua_State *L) {
     return 0;
 }
 
-static int nerv_matrix_(copy_fromd)(lua_State *L) { 
+static int nerv_matrix_(copy_fromd)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    CHECK_SAME_DIMENSION(a, b);
+    int nargs = lua_gettop(L);
+    int b_begin = nargs > 2 ? luaL_checkinteger(L, 3) : 0;
+    int b_end = nargs > 3 ? luaL_checkinteger(L, 4) : b->nrow;
+    int a_begin = nargs > 4 ? luaL_checkinteger(L, 5) : 0;
+    if (!(0 <= b_begin && b_begin < b_end && b_end <= b->nrow &&
+            a_begin + b_end - b_begin <= a->nrow))
+        nerv_error(L, "invalid copy interval");
+    if (a->ncol != b->ncol)
+        nerv_error(L, "matrices should be of the same dimension");
     CUDA_SAFE_SYNC_CALL(
-            cudaMemcpy2D(MATRIX_ELEM_PTR(a), a->stride,
-                MATRIX_ELEM_PTR(b), b->stride,
-                sizeof(MATRIX_ELEM) * b->ncol, b->nrow,
-                cudaMemcpyDeviceToDevice));
-    return 0;
-}
-
-static int nerv_matrix_(copy_tod)(lua_State *L) {
-    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    CHECK_SAME_DIMENSION(a, b);
-    CUDA_SAFE_SYNC_CALL(
-            cudaMemcpy2D(MATRIX_ELEM_PTR(b), b->stride,
-                MATRIX_ELEM_PTR(a), a->stride,
-                sizeof(MATRIX_ELEM) * a->ncol, a->nrow,
+            cudaMemcpy2D(MATRIX_ROW_PTR(a, a_begin), a->stride,
+                MATRIX_ROW_PTR(b, b_begin), b->stride,
+                sizeof(MATRIX_ELEM) * b->ncol, b_end - b_begin,
                 cudaMemcpyDeviceToDevice));
     return 0;
 }
@@ -196,11 +195,19 @@ extern const char *MATRIX_CUMATRIX_HOST_TNAME;
 static int nerv_matrix_(copy_fromh)(lua_State *L) { 
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
-    CHECK_SAME_DIMENSION(a, b);
+    int nargs = lua_gettop(L);
+    int b_begin = nargs > 2 ? luaL_checkinteger(L, 3) : 0;
+    int b_end = nargs > 3 ? luaL_checkinteger(L, 4) : b->nrow;
+    int a_begin = nargs > 4 ? luaL_checkinteger(L, 5) : 0;
+    if (!(0 <= b_begin && b_begin < b_end && b_end <= b->nrow &&
+            a_begin + b_end - b_begin <= a->nrow))
+        nerv_error(L, "invalid copy interval");
+    if (a->ncol != b->ncol)
+        nerv_error(L, "matrices should be of the same dimension");
     CUDA_SAFE_SYNC_CALL(
-            cudaMemcpy2D(MATRIX_ELEM_PTR(a), a->stride,
-                MATRIX_ELEM_PTR(b), b->stride,
-                sizeof(MATRIX_ELEM) * b->ncol, b->nrow,
+            cudaMemcpy2D(MATRIX_ROW_PTR(a, a_begin), a->stride,
+                MATRIX_ROW_PTR(b, b_begin), b->stride,
+                sizeof(MATRIX_ELEM) * b->ncol, b_end - b_begin,
                 cudaMemcpyHostToDevice));
     return 0;
 }
@@ -208,11 +215,19 @@ static int nerv_matrix_(copy_fromh)(lua_State *L) {
 static int nerv_matrix_(copy_toh)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
-    CHECK_SAME_DIMENSION(a, b);
+    int nargs = lua_gettop(L);
+    int a_begin = nargs > 2 ? luaL_checkinteger(L, 3) : 0;
+    int a_end = nargs > 3 ? luaL_checkinteger(L, 4) : a->nrow;
+    int b_begin = nargs > 4 ? luaL_checkinteger(L, 5) : 0;
+    if (!(0 <= a_begin && a_begin < a_end && a_end <= a->nrow &&
+            b_begin + a_end - a_begin <= b->nrow))
+        nerv_error(L, "invalid copy interval");
+    if (b->ncol != a->ncol)
+        nerv_error(L, "matrices should be of the same dimension");
     CUDA_SAFE_SYNC_CALL(
-            cudaMemcpy2D(MATRIX_ELEM_PTR(b), b->stride,
-                MATRIX_ELEM_PTR(a), a->stride,
-                sizeof(MATRIX_ELEM) * a->ncol, a->nrow,
+            cudaMemcpy2D(MATRIX_ROW_PTR(b, b_begin), b->stride,
+                MATRIX_ROW_PTR(a, a_begin), a->stride,
+                sizeof(MATRIX_ELEM) * a->ncol, a_end - a_begin,
                 cudaMemcpyDeviceToHost));
     return 0;
 }
@@ -221,6 +236,7 @@ static int nerv_matrix_(trans)(lua_State *L) {
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = nerv_matrix_(new_)(L, a->ncol, a->nrow);
     MATRIX_ELEM alpha = 1, beta = 0;
+    /* FIXME: possible memory leak when lua error is raised */
     CUBLAS_SAFE_CALL(
             NERV_CUBLAS_(geam)(cublas_handle, CUBLAS_OP_T, CUBLAS_OP_T,
                 a->nrow, a->ncol,
@@ -249,6 +265,19 @@ static int nerv_matrix_(log_elem)(lua_State *L) {
     CHECK_SAME_DIMENSION(a, b);
     cudak_(cuda_log_elem)(a, b);
     return 0;
+}
+
+static int nerv_matrix_(decompress)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b;
+    int orig_col = luaL_checkinteger(L, 2);
+    if (a->ncol != 1)
+        nerv_error(L, "the compressed matrix must be a column vector");
+    b = nerv_matrix_(new_)(L, a->nrow, orig_col);
+    cudak_(cuda_fill)(b, 0.0);
+    cudak_(cuda_decompress)(a, b);
+    luaT_pushudata(L, b, nerv_matrix_(tname));
+    return 1;
 }
 
 extern const char *nerv_matrix_host_int_tname;
@@ -322,11 +351,11 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"rowsum", nerv_matrix_(rowsum)},
     {"rowmax", nerv_matrix_(rowmax)},
     {"trans", nerv_matrix_(trans)},
+    {"decompress", nerv_matrix_(decompress)},
     /* in-place calc */
     {"copy_fromh", nerv_matrix_(copy_fromh)},
     {"copy_fromd", nerv_matrix_(copy_fromd)},
     {"copy_toh", nerv_matrix_(copy_toh)},
-    {"copy_tod", nerv_matrix_(copy_tod)},
     {"add", nerv_matrix_(add)},
     {"mul", nerv_matrix_(mul)},
     {"add_row", nerv_matrix_(add_row)},

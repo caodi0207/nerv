@@ -28,3 +28,25 @@ function nerv.ChunkFile:read_chunk(id, global_conf)
     chunk:read(self:get_chunkdata(id))
     return chunk
 end
+
+local DataReader = nerv.class("nerv.DataReader")
+
+function DataReader:__init(global_conf, reader_conf)
+    nerv.error_method_not_implemented()
+end
+
+function DataReader:get_data()
+    nerv.error_method_not_implemented()
+end
+
+local DataBuffer = nerv.class("nerv.DataBuffer")
+
+function DataBuffer:__init(global_conf, buffer_conf)
+    nerv.error_method_not_implemented()
+end
+
+function DataBuffer:get_batch()
+    nerv.error_method_not_implemented()
+end
+
+require 'io.sgd_buffer'

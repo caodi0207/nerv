@@ -11,6 +11,7 @@
 #define NERV_GENERIC_MATRIX
 #include "../../common.h"
 #include "../../io/chunk_file.h"
+#include "string.h"
 
 static void host_matrix_(alloc)(lua_State *L,
                                 MATRIX_ELEM **dptr, size_t *stride,
@@ -96,10 +97,27 @@ int nerv_matrix_(save)(lua_State *L) {
     return 0;
 }
 
-
+static int nerv_matrix_(copy_from)(lua_State *L) {
+    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    int nargs = lua_gettop(L);
+    int b_begin = nargs > 2 ? luaL_checkinteger(L, 3) : 0;
+    int b_end = nargs > 3 ? luaL_checkinteger(L, 4) : b->nrow;
+    int a_begin = nargs > 4 ? luaL_checkinteger(L, 5) : 0;
+    if (!(0 <= b_begin && b_begin < b_end && b_end <= b->nrow &&
+            a_begin + b_end - b_begin <= a->nrow))
+        nerv_error(L, "invalid copy interval");
+    if (a->ncol != b->ncol)
+        nerv_error(L, "matrices should be of the same dimension");
+    memmove(MATRIX_ROW_PTR(a, a_begin),
+            MATRIX_ROW_PTR(b, b_begin),
+            sizeof(MATRIX_ELEM) * b->ncol * (b_end - b_begin));
+    return 0;
+}
 static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"load", nerv_matrix_(load)},
     {"save", nerv_matrix_(save)},
+    {"copy_from", nerv_matrix_(copy_from)},
     {NULL, NULL}
 };
 
