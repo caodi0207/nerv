@@ -19,5 +19,8 @@ typedef struct ChunkData {
 ```
 
 ##Methods##
-* __ChunkFileHandle ChunkFile.\_\_init(string mode, string fn)__  
+* __ChunkFile ChunkFile.\_\_init(string mode, string fn)__  
 `mode` can be `r` or `w`, for reading or writing a file.
+
+##Developer Notes##
+In __Nerv.io__, a returned(by `ChunkFile.__init`) __nerv.ChunkFile__ will have a member `handle`, which is a __nerv.ChunkFileHandle__.  
