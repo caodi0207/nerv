@@ -102,6 +102,12 @@ Return a new __MMatrix__ which is a copy of `self`.
 * __string Matrix.\_\_tostring\_\_(Matrix self)__  
 Returns a string containing values of __Matrix__ `self`.
 ---
+* __MMatrix MMatrix.load(ChunkData chunk)__  
+Return a new __MMatrix__ loaded from the file position in `chunk`.
+* __void MMatrix.save(MMatrix self, ChunkFileHandle chunk)__  
+Write `self` to the file position in `chunk`.
+* __void MMatrix.copy_from(MMatrix ma, MMatrix mb,[int b_bgein, int b_end, int a_begin])__  
+Copy a part of `mb`(rows of index `[b_begin..b_end)`) to `ma` beginning at row index `a_begin`. If not specified, `b_begin` will be `0`, `b_end` will be `b.nrow`, `a_begin` will be `0`.
 
 ##Examples##
 * Use `get_dataref_value` to test __Nerv__'s matrix space allocation.  
