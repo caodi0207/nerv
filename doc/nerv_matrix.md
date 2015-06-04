@@ -99,3 +99,61 @@ Returns a new __Matrix__ which stores the result of `ma*mb`.
 Return a new __CuMatrix__ which is a copy of `m`.
 * __MMatrix CuMatrix.new_to_host(CuMatrix self)__  
 Return a new __MMatrix__ which is a copy of `self`.
+* __string Matrix.\_\_tostring\_\_(Matrix self)__  
+Returns a string containing values of __Matrix__ `self`.
+---
+
+##Examples##
+* Use `get_dataref_value` to test __Nerv__'s matrix space allocation.  
+```
+m = 10
+n = 10
+fm = nerv.MMatrixFloat(m, n)
+dm = nerv.MMatrixDouble(m, n)
+for i = 0, m - 1 do
+    for j = 0, n - 1 do
+        t = i / (j + 1)
+        fm[i][j] = t
+        dm[i][j] = t
+    end
+end
+print("test fm:get_dataref_value:", fm:get_dataref_value())
+print("forced a garbade collect")
+collectgarbage("collect")
+print("test fm:get_dataref_value:", fm:get_dataref_value())
+print(fm)
+print(dm)
+```
+* Test some __Matrix__ calculations.
+```
+m = 4
+n = 4
+fm = nerv.CuMatrixFloat(m, n)
+dm = nerv.CuMatrixDouble(m, n)
+for i = 0, m - 1 do
+    for j = 0, n - 1 do
+        -- local t = math.random(10)
+        t = i / (j + 1)
+        fm[i][j] = t
+        dm[i][j] = t
+    end
+end
+print(fm)
+fs = fm:create()
+fs:softmax(fm)
+-- print(fs)
+print(dm)
+ds = dm:create()
+ds:softmax(dm)
+-- print(ds)
+print(fs)
+print(fs + fs)
+print(ds + ds)
+print(fs - fs)
+print(ds - ds)
+a = fs:create()
+a:mul_elem(fs, fs)
+print(a)
+a:log_elem(fs)
+print(a)
+```
