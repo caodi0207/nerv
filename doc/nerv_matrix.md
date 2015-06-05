@@ -23,7 +23,7 @@ Also note that all assigning operation in __Nerv__ is reference copy, you can us
 ###Class hierarchy###
 The class hierarchy of the matrix classes can be clearly observed in `matrix/init.c`.
 First there is a abstract base class __Nerv.Matrix__, which is inherited by __Nerv.CuMatrix__ and __Nerv.MMatrix__(also abstract).  
-Finally, there is __Nerv.CuMatrixFloat__, __Nerv.CuMatrixDouble__, inheriting __Nerv.CuMatrix__, and __Nerv.MMatrixFloat__, __Nerv.MMatrixDouble__, inheriting __Nerv.MMatrix__.
+Finally, there is __Nerv.CuMatrixFloat__, __Nerv.CuMatrixDouble__, inheriting __Nerv.CuMatrix__, and __Nerv.MMatrixFloat__, __Nerv.MMatrixDouble__, __Nerv.MMatrixInt__ , inheriting __Nerv.MMatrix__.
 
 ##Methods##
 Mind that usually a matrix object can only do calculation with matrix of its own type(a __Nerv.CuMatrixFloat__ matrix can only do add operation with a __Nerv.CuMatrixFloat__).  
@@ -68,7 +68,7 @@ It sets the content of __Matrix__ `self` to be `alpha * ma + beta * mb`.__Matrix
 * __void Matrix.mul(Matrix self, Matrix ma, Matrix mb, Element_type alpha, Element_type beta, [string ta, string tb])__  
 It sets the content of __Matrix__ `self` to be `beta * self + alpha * ma * mb`. `ta` and `tb` is optional, if `ta` is 'T', then `ma` will be transposed, also if `tb` is 'T', `mb` will be transposed.
 * __void Matrix.add_row(Matrix self, Matrix va, Element_type beta)__  
-It sets the content of __Matrix__ `self`(which should be row vector) to be `self + beta * va`.
+Add `beta * va` to every row of __Matrix__ `self`.
 * __void Matrix.fill(Matrix self, Element_type value)__  
 Fill the content of __Matrix__ `self` to be `value`.
 * __void Matrix.sigmoid(Matrix self, Matrix ma)__  
@@ -77,3 +77,89 @@ Set the element of __Matrix__ `self` to be elementwise-sigmoid of `ma`.
 Set the element of __Matrix__ `self`, to be `self[i][j]=err[i][j]*output[i][j]*(1-output[i][j])`. This function is used to propagate sigmoid layer error.
 * __void Matrix.softmax(Matrix self, Matrix a)__  
 Calculate a row-by-row softmax of __Matrix__ `a` and save the result in `self`.
+* __void Matrix.mul_elem(Matrix self, Matrix ma, Matrix mb)__  
+Calculate element-wise multiplication of __Matrix__ `ma` and `mb`, store the result in `self`.
+* __void Matrix.log_elem(Matrix self, Matrix ma)__  
+Calculate element-wise log of __Matrix__ `ma`, store the result in `self`.
+* __void Matrix.copy_rows_fromh_by_idx(Matrix self, MMatrix ma, MMatrixInt idx)__  
+`idx` should be a row vector. This function copy the rows of `ma` to `self` according to `idx`, in other words, it assigns `ma[idx[i]]` to `self[i]`.
+* __void Matrix.expand_frm(Matrix self, Matrix a, int context)__  
+Treating each row of `a` as speech feature, and do a feature expansion. The `self` should of size `(a.nrow, a.ncol * (context * 2 + 1))`. `self[i]` will be `(a[i-context] a[i-context+1] ... a[i] a[i+1] a[i+context])`. `a[0]` and `a[nrow]` will be copied to extend the index range.
+* __void Matrix.rearrange_frm(Matrix self, Matrix a, int step)__  
+Rearrange `a` according to its feature dimension. The `step` is the length of context. So, `self[i][j]` will be assigned `a[i][j / step + (j % step) * (a.ncol / step)]`. `a` and `self` should be of the same size and `step` should be divisible by `a.ncol`.
+* __void Matrix.scale_row(Matrix self, Matrix scale)__  
+Scale each column of `self` according to a vector `scale`. `scale` should be of size `1 * self.ncol`.
+* __Matrix Matrix.\_\_add\_\_(Matrix ma, Matrix mb)__  
+Returns a new __Matrix__ which stores the result of `ma+mb`.
+* __Matrix Matrix.\_\_sub\_\_(Matrix ma, Matrix mb)__  
+Returns a new __Matrix__ which stores the result of `ma-mb`.
+* __Matrix Matrix.\_\_mul\_\_(Matrix ma, Matrix mb)__  
+Returns a new __Matrix__ which stores the result of `ma*mb`.
+* __CuMatrix CuMatrix.new_from_host(MMatrix m)__  
+Return a new __CuMatrix__ which is a copy of `m`.
+* __MMatrix CuMatrix.new_to_host(CuMatrix self)__  
+Return a new __MMatrix__ which is a copy of `self`.
+* __string Matrix.\_\_tostring\_\_(Matrix self)__  
+Returns a string containing values of __Matrix__ `self`.
+---
+* __MMatrix MMatrix.load(ChunkData chunk)__  
+Return a new __MMatrix__ loaded from the file position in `chunk`.
+* __void MMatrix.save(MMatrix self, ChunkFileHandle chunk)__  
+Write `self` to the file position in `chunk`.
+* __void MMatrix.copy_from(MMatrix ma, MMatrix mb,[int b_bgein, int b_end, int a_begin])__  
+Copy a part of `mb`(rows of index `[b_begin..b_end)`) to `ma` beginning at row index `a_begin`. If not specified, `b_begin` will be `0`, `b_end` will be `b.nrow`, `a_begin` will be `0`.
+
+##Examples##
+* Use `get_dataref_value` to test __Nerv__'s matrix space allocation.  
+```
+m = 10
+n = 10
+fm = nerv.MMatrixFloat(m, n)
+dm = nerv.MMatrixDouble(m, n)
+for i = 0, m - 1 do
+    for j = 0, n - 1 do
+        t = i / (j + 1)
+        fm[i][j] = t
+        dm[i][j] = t
+    end
+end
+print("test fm:get_dataref_value:", fm:get_dataref_value())
+print("forced a garbade collect")
+collectgarbage("collect")
+print("test fm:get_dataref_value:", fm:get_dataref_value())
+print(fm)
+print(dm)
+```
+* Test some __Matrix__ calculations.
+```
+m = 4
+n = 4
+fm = nerv.CuMatrixFloat(m, n)
+dm = nerv.CuMatrixDouble(m, n)
+for i = 0, m - 1 do
+    for j = 0, n - 1 do
+        -- local t = math.random(10)
+        t = i / (j + 1)
+        fm[i][j] = t
+        dm[i][j] = t
+    end
+end
+print(fm)
+fs = fm:create()
+fs:softmax(fm)
+-- print(fs)
+print(dm)
+ds = dm:create()
+ds:softmax(dm)
+-- print(ds)
+print(fs)
+print(fs + fs)
+print(ds + ds)
+print(fs - fs)
+print(ds - ds)
+a = fs:create()
+a:mul_elem(fs, fs)
+print(a)
+a:log_elem(fs)
+print(a)
+```
