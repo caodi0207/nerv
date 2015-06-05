@@ -210,7 +210,9 @@ function nerv.DAGLayer:update(bp_err, input, output)
     self:set_err_inputs(bp_err)
     self:set_inputs(input)
     self:set_outputs(output)
+    -- print("update")
     for id, ref in pairs(self.queue) do
+        -- print(ref.layer.id)
         ref.layer:update(ref.err_inputs, ref.inputs, ref.outputs)
     end
 end
@@ -220,11 +222,7 @@ function nerv.DAGLayer:propagate(input, output)
     self:set_outputs(output)
     for i = 1, #self.queue do
         local ref = self.queue[i]
-        --[[
-        print(ref.inputs[1])
-        print(ref.outputs[1])
-        print(#ref.inputs, #ref.outputs)
-        --]]
+        -- print(ref.layer.id)
         ref.layer:propagate(ref.inputs, ref.outputs)
     end
 end
@@ -238,8 +236,5 @@ function nerv.DAGLayer:back_propagate(next_bp_err, bp_err, input, output)
         local ref = self.queue[i]
         -- print(ref.layer.id)
         ref.layer:back_propagate(ref.err_outputs, ref.err_inputs, ref.inputs, ref.outputs)
-         -- if #ref.err_outputs > 0 then
-         --     print(ref.err_outputs[1])
-         -- end
     end
 end

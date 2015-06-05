@@ -8,6 +8,7 @@ extern const char *nerv_chunk_data_tname;
 
 typedef struct ChunkFileHandle {
     FILE *fp;
+    int closed;
 } ChunkFileHandle;
 
 typedef struct ChunkInfo {

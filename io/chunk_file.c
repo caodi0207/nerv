@@ -10,6 +10,11 @@
     do { \
         if ((exp) != (ret)) INVALID_FORMAT_ERROR(fn); \
     } while (0)
+#define CHECK_FILE_OPEN(pfh) \
+    do { \
+        if ((pfh)->closed) \
+            nerv_error(L, "operations on a closed file"); \
+    } while (0)
 
 const char *nerv_chunk_file_tname = "nerv.ChunkFile";
 const char *nerv_chunk_file_handle_tname = "nerv.ChunkFileHandle";
@@ -109,6 +114,7 @@ int nerv_chunk_file_open_write(lua_State *L, const char *fn) {
     if (!fp) nerv_error(L, "Error while opening chunk file: %s", fn);
     lfp = (ChunkFileHandle *)malloc(sizeof(ChunkFileHandle));
     lfp->fp = fp;
+    lfp->closed = 0;
     luaT_pushudata(L, lfp, nerv_chunk_file_handle_tname);
     lua_setfield(L, -2, "handle");
     luaT_pushmetatable(L, nerv_chunk_file_tname);
@@ -174,6 +180,7 @@ int nerv_chunk_file_open_read(lua_State *L, const char *fn) {
     lua_setfield(L, -2, "metadata");
     lfp = (ChunkFileHandle *)malloc(sizeof(ChunkFileHandle));
     lfp->fp = fp;
+    lfp->closed = 0;
     luaT_pushudata(L, lfp, nerv_chunk_file_handle_tname);
     lua_setfield(L, -2, "handle");
     luaT_pushmetatable(L, nerv_chunk_file_tname);
@@ -215,6 +222,7 @@ int nerv_chunk_file_write_chunkdata(lua_State *L) {
     const char *metadata_str = lua_tolstring(L, 2, NULL);
     lua_getfield(L, 1, "handle");
     pfh = luaT_checkudata(L, -1, nerv_chunk_file_handle_tname);
+    CHECK_FILE_OPEN(pfh);
     start = ftello(pfh->fp);
     write_chunk_header_plain(pfh->fp, 0, &status); /* fill zeros */
     CHECK_WRITE(status);
@@ -245,6 +253,7 @@ int nerv_chunk_file_get_chunkdata(lua_State *L) {
 
     lua_getfield(L, 1, "handle");
     pfh = luaT_checkudata(L, -1, nerv_chunk_file_handle_tname);
+    CHECK_FILE_OPEN(pfh);
     lua_pop(L, 1); /* pop handle */
     lua_getfield(L, 1, "metadata");
     /* now stack: self, k, metadata */
@@ -260,10 +269,20 @@ int nerv_chunk_file_get_chunkdata(lua_State *L) {
     return 1;
 }
 
+int nerv_chunk_file_close(lua_State *L) {
+    ChunkFileHandle *pfh;
+    lua_getfield(L, 1, "handle");
+    pfh = luaT_checkudata(L, -1, nerv_chunk_file_handle_tname);
+    CHECK_FILE_OPEN(pfh);
+    fclose(pfh->fp);
+    pfh->closed = 1;
+    return 0;
+}
+
 int nerv_chunk_file_handle_destroy(lua_State *L) {
     ChunkFileHandle *pfh = luaT_checkudata(L, 1,
                                 nerv_chunk_file_handle_tname);
-    fclose(pfh->fp);
+    if (!pfh->closed) fclose(pfh->fp);
     free(pfh);
     return 0;
 }
@@ -285,6 +304,7 @@ static int nerv_chunk_data_destroy(lua_State *L) {
 static const luaL_Reg nerv_chunk_file_methods[] = {
     {"get_chunkdata", nerv_chunk_file_get_chunkdata},
     {"_write_chunkdata", nerv_chunk_file_write_chunkdata},
+    {"close", nerv_chunk_file_close},
     {"__init", nerv_chunk_file___init},
     {NULL, NULL}
 };

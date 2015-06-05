@@ -18,6 +18,9 @@ function nerv.ChunkFile:write_chunk(chunk)
 end
 
 function nerv.ChunkFile:read_chunk(id, global_conf)
+    if self.metadata == nil then
+        nerv.error("wrong file opening mode")
+    end
     local metadata = self.metadata[id]
     if metadata == nil then
         nerv.error("chunk with id %s does not exist", id)
