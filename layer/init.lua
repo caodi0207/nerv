@@ -58,6 +58,10 @@ function Layer:check_dim_len(len_in, len_out)
     end
 end
 
+function Layer:get_params()
+    nerv.error_method_not_implemented()
+end
+
 function Layer:get_dim()
     return self.dim_in, self.dim_out
 end

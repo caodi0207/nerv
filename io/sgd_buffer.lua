@@ -15,7 +15,7 @@ function SGDBuffer:__init(global_conf, buffer_conf)
         local buffs = {}
         for id, width in pairs(reader_spec.data) do
             buffs[id] = {data = global_conf.mmat_type(self.buffer_size, width),
-                        leftover = {},
+                        leftover = nil,
                         width = width}
         end
         table.insert(self.readers, {buffs = buffs,

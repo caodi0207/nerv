@@ -22,3 +22,7 @@ function WindowLayer:propagate(input, output)
     output[1]:copy_fromd(input[1])
     output[1]:scale_row(self.window.trans)
 end
+
+function WindowLayer:get_params()
+    return {self.window}
+end
