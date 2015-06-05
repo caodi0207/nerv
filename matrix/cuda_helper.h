@@ -4,12 +4,13 @@
 #include "cuda_runtime.h"
 #include "driver_types.h"
 #include "cublas_v2.h"
-#define CUBLAS_SAFE_CALL(call) \
+#define CUBLAS_SAFE_SYNC_CALL(call) \
     do { \
         cublasStatus_t  err = (call); \
         if (err != CUBLAS_STATUS_SUCCESS) \
             nerv_error(L, "cumatrix cublas error: %s at %s:%d", \
                         cublasGetErrorString(err), __FILE__, __LINE__); \
+        cudaDeviceSynchronize(); \
     } while (0)
 
 #define CUDA_SAFE_CALL(call) \

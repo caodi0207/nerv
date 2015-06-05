@@ -146,7 +146,7 @@ __global__ void cudak_(block_reduce_rowmax)(const MATRIX_ELEM *input,
                                             const int n) {
     extern __shared__ MATRIX_ELEM cudak_(arr)[];
     int j = blockIdx.x * blockDim.x + threadIdx.x;
-    cudak_(arr)[threadIdx.x] = j < n ? input[j + istride * blockIdx.y] : 0;
+    cudak_(arr)[threadIdx.x] = j < n ? input[j + istride * blockIdx.y] : -FLT_MAX;
     __syncthreads();
     for (int offset = blockDim.x >> 1;  offset; offset >>= 1)
     {
@@ -173,7 +173,7 @@ __global__ void cudak_(block_reduce_rowmax_idx)(const MATRIX_ELEM *input,
     MATRIX_ELEM *arr_val = cudak_(arr);
     MATRIX_ELEM *arr_idx = arr_val + blockDim.x;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
-    arr_val[threadIdx.x] = j < n ? input[j + istride * blockIdx.y] : 0;
+    arr_val[threadIdx.x] = j < n ? input[j + istride * blockIdx.y] : -FLT_MAX;
     arr_idx[threadIdx.x] = j < n ? idx_input[j + istride * blockIdx.y] : 0;
     __syncthreads();
     for (int offset = blockDim.x >> 1;  offset; offset >>= 1)
@@ -272,6 +272,7 @@ extern "C" {
         cudak_(log_elem)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
              b->nrow, b->ncol, b->stride / sizeof(MATRIX_ELEM));
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_mul_elem)(const Matrix *a, const Matrix *b,
@@ -283,6 +284,7 @@ extern "C" {
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
              MATRIX_ELEM_PTR(c),
              b->nrow, b->ncol, b->stride / sizeof(MATRIX_ELEM));
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_sigmoid)(const Matrix *a, Matrix *b) {
@@ -292,6 +294,7 @@ extern "C" {
         cudak_(sigmoid)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b), b->nrow, b->ncol,
             b->stride / sizeof(MATRIX_ELEM));
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_sigmoid_grad)(const Matrix *output,
@@ -304,6 +307,7 @@ extern "C" {
              MATRIX_ELEM_PTR(nerr),
              nerr->nrow, nerr->ncol,
              nerr->stride / sizeof(MATRIX_ELEM));
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_rowsum)(const Matrix *a, Matrix *b) {
@@ -321,10 +325,12 @@ extern "C" {
         ncol = blocks_per_row;
         assert((unsigned long)ncol <= block.x);
         grid.x = 1;
+        cudaStreamSynchronize(0);
         cudak_(block_reduce_rowsum)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
+        cudaStreamSynchronize(0);
         cudaFree(res);
     }
 
@@ -343,10 +349,12 @@ extern "C" {
         nrow = blocks_per_col;
         assert((unsigned long)nrow <= block.y);
         grid.y = 1;
+        cudaStreamSynchronize(0);
         cudak_(block_reduce_colsum)<<<grid, block, block.y * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              nrow);
+        cudaStreamSynchronize(0);
         cudaFree(res);
     }
 
@@ -365,10 +373,12 @@ extern "C" {
         nrow = blocks_per_col;
         assert((unsigned long)nrow <= block.y);
         grid.y = 1;
+        cudaStreamSynchronize(0);
         cudak_(block_reduce_colsum)<<<grid, block, block.y * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              nrow);
+        cudaStreamSynchronize(0);
         cudaFree(res);
     }
 
@@ -383,6 +393,7 @@ extern "C" {
                 b->nrow, b->ncol,
                 b->stride / sizeof(MATRIX_ELEM),
                 max->stride / sizeof(MATRIX_ELEM));
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_softmax_denominator)(const Matrix *a, const Matrix *max, Matrix *b) {
@@ -403,11 +414,13 @@ extern "C" {
         ncol = blocks_per_row;
         assert((unsigned long)ncol <= block.x);
         grid.x = 1;
+        cudaStreamSynchronize(0);
         cudak_(block_reduce_rowsum) \
             <<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
+        cudaStreamSynchronize(0);
         cudaFree(res);
     }
 
@@ -426,10 +439,12 @@ extern "C" {
         ncol = blocks_per_row;
         assert((unsigned long)ncol <= block.x);
         grid.x = 1;
+        cudaStreamSynchronize(0);
         cudak_(block_reduce_rowmax)<<<grid, block, block.x * sizeof(MATRIX_ELEM)>>> \
             (res, MATRIX_ELEM_PTR(b),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
+        cudaStreamSynchronize(0);
         cudaFree(res);
     }
 
@@ -444,20 +459,23 @@ extern "C" {
         cudak_(gen_col_idx)<<<grid, block>>>(a_idx, a->nrow, ncol, stride / sizeof(MATRIX_ELEM));
         cudaMallocPitch(&res, &stride, blocks_per_row * sizeof(MATRIX_ELEM), a->nrow);
         cudaMallocPitch(&res_idx, &stride, blocks_per_row * sizeof(MATRIX_ELEM), a->nrow);
+        cudaStreamSynchronize(0);
         cudak_(block_reduce_rowmax_idx)<<<grid, block,
                                         2 * block.x * sizeof(MATRIX_ELEM)>>> \
             (MATRIX_ELEM_PTR(a), a_idx, res, res_idx,
              a->stride / sizeof(MATRIX_ELEM), stride / sizeof(MATRIX_ELEM),
              ncol);
-        cudaFree(a_idx);
         ncol = blocks_per_row;
         assert((unsigned long)ncol <= block.x);
         grid.x = 1;
+        cudaStreamSynchronize(0);
         cudak_(block_reduce_rowmax_idx)<<<grid, block,
                                         2 * block.x * sizeof(MATRIX_ELEM)>>> \
             (res, res_idx, MATRIX_ELEM_PTR(b), MATRIX_ELEM_PTR(b_idx),
              stride / sizeof(MATRIX_ELEM), b->stride / sizeof(MATRIX_ELEM),
              ncol);
+        cudaStreamSynchronize(0);
+        cudaFree(a_idx);
         cudaFree(res);
         cudaFree(res_idx);
     }
@@ -470,6 +488,7 @@ extern "C" {
         cudak_(add_row)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b), b->nrow, b->ncol,
             b->stride / sizeof(MATRIX_ELEM), beta);
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_fill)(Matrix *a, double val) {
@@ -479,6 +498,7 @@ extern "C" {
         cudak_(fill)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), a->nrow, a->ncol,
             a->stride / sizeof(MATRIX_ELEM), val);
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_expand_frm)(const Matrix *a, Matrix *b, int context) {
@@ -492,6 +512,7 @@ extern "C" {
              a->stride / sizeof(MATRIX_ELEM),
              b->stride / sizeof(MATRIX_ELEM),
              context);
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_rearrange_frm)(const Matrix *a, Matrix *b, int step) {
@@ -502,6 +523,7 @@ extern "C" {
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
              b->nrow, b->ncol, b->stride / sizeof(MATRIX_ELEM),
              step, b->ncol / step);
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_scale_row)(const Matrix *a, Matrix *b) {
@@ -511,6 +533,7 @@ extern "C" {
         cudak_(scale_row)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), MATRIX_ELEM_PTR(b),
              b->nrow, b->ncol, b->stride / sizeof(MATRIX_ELEM));
+        cudaStreamSynchronize(0);
     }
 
     void cudak_(cuda_decompress)(const Matrix *a, Matrix *b) {
@@ -521,6 +544,7 @@ extern "C" {
              a->nrow, a->ncol,
              a->stride / sizeof(MATRIX_ELEM),
              b->stride / sizeof(MATRIX_ELEM));
+        cudaStreamSynchronize(0);
     }
 }
 #endif

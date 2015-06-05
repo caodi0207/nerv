@@ -24,7 +24,7 @@ static void nerv_matrix_(add_)(lua_State *L, const Matrix *a, const Matrix *b,
                                 const Matrix *c,
                                 MATRIX_ELEM alpha, MATRIX_ELEM beta) {
     PROFILE_START
-    CUBLAS_SAFE_CALL(
+    CUBLAS_SAFE_SYNC_CALL(
             NERV_CUBLAS_(geam)(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N,
                 a->ncol, a->nrow,
                 &alpha,
@@ -74,7 +74,7 @@ static int nerv_matrix_(mul)(lua_State *L) {
 /*    MATRIX_ELEM alpha = 1.0f, beta = 0.0f; */
     /* Because matrix in Nerv is row-major, here b comes first */
     PROFILE_START
-    CUBLAS_SAFE_CALL(
+    CUBLAS_SAFE_SYNC_CALL(
             NERV_CUBLAS_(gemm)(cublas_handle, tb, ta,
                 bn, am, bm,
                 &alpha,
@@ -285,7 +285,7 @@ static int nerv_matrix_(trans)(lua_State *L) {
     MATRIX_ELEM alpha = 1, beta = 0;
     /* FIXME: possible memory leak when lua error is raised */
     PROFILE_START
-    CUBLAS_SAFE_CALL(
+    CUBLAS_SAFE_SYNC_CALL(
             NERV_CUBLAS_(geam)(cublas_handle, CUBLAS_OP_T, CUBLAS_OP_T,
                 a->nrow, a->ncol,
                 &alpha,
