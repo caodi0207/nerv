@@ -41,7 +41,7 @@ function AffineLayer:init()
     self.bc:fill(0)
 end
 
-function nerv.AffineLayer:update(bp_err, input, output)
+function AffineLayer:update(bp_err, input, output)
     local ltp = self.ltp.trans
     local bp = self.bp.trans
     local ltc = self.ltc
@@ -60,13 +60,17 @@ function nerv.AffineLayer:update(bp_err, input, output)
     ltp:add(ltp, ltp, 1.0, -gconf.lrate * gconf.wcost)
 end
 
-function nerv.AffineLayer:propagate(input, output)
+function AffineLayer:propagate(input, output)
     -- apply linear transform
     output[1]:mul(input[1], self.ltp.trans, 1.0, 0.0, 'N', 'N')
     -- add bias
     output[1]:add_row(self.bp.trans, 1.0)
 end
 
-function nerv.AffineLayer:back_propagate(next_bp_err, bp_err, input, output)
+function AffineLayer:back_propagate(next_bp_err, bp_err, input, output)
     next_bp_err[1]:mul(bp_err[1], self.ltp.trans, 1.0, 0.0, 'N', 'T')
+end
+
+function AffineLayer:get_params()
+    return {self.ltp, self.bp}
 end

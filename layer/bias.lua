@@ -22,3 +22,7 @@ function BiasLayer:propagate(input, output)
     output[1]:copy_fromd(input[1])
     output[1]:add_row(self.bias.trans, 1.0)
 end
+
+function BiasLayer:get_params()
+    return {self.bias}
+end

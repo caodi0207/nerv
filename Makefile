@@ -12,7 +12,7 @@ LUA_LIBS := matrix/init.lua io/init.lua nerv.lua \
 			nn/init.lua nn/layer_repo.lua nn/param_repo.lua nn/layer_dag.lua \
 			io/sgd_buffer.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
-# CUDA_BASE := /usr/local/cuda-6.5
+#CUDA_BASE := /usr/local/cuda-6.5
 CUDA_BASE := /usr/local/cuda-5.0
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
 INCLUDE += $(CUDA_INCLUDE)

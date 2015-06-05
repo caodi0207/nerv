@@ -50,3 +50,7 @@ function SoftmaxCELayer:back_propagate(next_bp_err, bp_err, input, output)
     end
     next_bp_err[1]:add(self.soutput, label, 1.0, -1.0)
 end
+
+function SoftmaxCELayer:get_params()
+    return {}
+end
