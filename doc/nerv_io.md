@@ -30,6 +30,8 @@ In the file, a parameter object will be saved using a standard format. First is 
 Write `p` into the file. `p:write` will be called.
 * __Param ChunkFile.read_chunk(ChunkFile self, string id, table global_conf)__  
 Read the __Param__ object by id `id` from the file `self`. It will be constructed using `__init(id, global_conf)`. `p:read` will be called.
+* __void ChunkFile.close(ChunkFile self)__  
+Close the opened file.
 
 ##Examples##
 * An example showing how to use __ChunkFile__ to store and read parameter objects.
@@ -82,11 +84,13 @@ do
 
     f:write_chunk(exampleP1)
     f:write_chunk(exampleP2)
+    f:close()
 end
 do
     local f = nerv.ChunkFile('../tmp', 'r')
     local exampleP1 = f:read_chunk('exampleP1', global_conf)
     local exampleP2 = f:read_chunk('exampleP2', global_conf)
+    f:close()
     print(exampleP1.matrix)
     print(exampleP2.matrix)
 end
