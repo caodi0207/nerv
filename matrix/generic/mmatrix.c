@@ -43,6 +43,9 @@ int nerv_matrix_(set_elem)(lua_State *L) {
 static const luaL_Reg nerv_matrix_(extra_methods)[];
 static void host_matrix_(init)(lua_State *L) {
     luaN_append_methods(L, nerv_matrix_(extra_methods));
+#ifdef MMATRIX_INIT
+    MMATRIX_INIT(L);
+#endif
 }
 
 #include "matrix.c"
@@ -114,6 +117,7 @@ static int nerv_matrix_(copy_from)(lua_State *L) {
             sizeof(MATRIX_ELEM) * b->ncol * (b_end - b_begin));
     return 0;
 }
+
 static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"load", nerv_matrix_(load)},
     {"save", nerv_matrix_(save)},

@@ -268,7 +268,7 @@ int nerv_chunk_file_handle_destroy(lua_State *L) {
     return 0;
 }
 
-static int nerv_chunk_destroy(lua_State *L) {
+static int nerv_chunk_info_destroy(lua_State *L) {
     ChunkInfo *pci = luaT_checkudata(L, 1, nerv_chunk_info_tname);
     free(pci);
     return 0;
@@ -298,7 +298,7 @@ void nerv_chunk_file_init(lua_State *L) {
     luaT_newmetatable(L, nerv_chunk_file_handle_tname, NULL,
                         NULL, nerv_chunk_file_handle_destroy, NULL);
     luaT_newmetatable(L, nerv_chunk_info_tname, NULL,
-                        NULL, nerv_chunk_destroy, NULL);
+                        NULL, nerv_chunk_info_destroy, NULL);
     luaT_newmetatable(L, nerv_chunk_data_tname, NULL,
                         NULL, nerv_chunk_data_destroy, NULL);
 }

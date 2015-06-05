@@ -1,4 +1,38 @@
 #define NERV_GENERIC_CUMATRIX
+#include "../common.h"
+#include "cuda_helper.h"
+static cublasHandle_t cublas_handle;
+static HashMap *profile;
+
+int print_profile(lua_State *L) {
+    size_t i;
+    fprintf(stderr, "*** [nerv cumatrix profile] **\n");
+    for (i = 0; i < profile->size; i++)
+    {
+        HashNode *ptr;
+        for (ptr = profile->bucket[i]; ptr; ptr = ptr->next)
+        {
+            fprintf(stderr, "%s:\t%.6f\n", ptr->key, *(float *)ptr->val);
+        }
+    }
+    return 0;
+}
+
+int clear_profile(lua_State *L) {
+    hashmap_clear(profile);
+    return 0;
+}
+
+void accu_profile(const char *name, float delta) {
+    float *val = hashmap_getval(profile, name);
+    if (!val)
+    {
+        val = malloc(sizeof(float));
+        *val = 0;
+        hashmap_setval(profile, name, val);
+    }
+    *val += delta;
+}
 
 #define MATRIX_USE_FLOAT
 #define cuda_matrix_(NAME) cuda_matrix_float_##NAME

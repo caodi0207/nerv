@@ -1,17 +1,23 @@
 #ifndef NERV_CUDA_HELPER_H
 #define NERV_CUDA_HELPER_H
+#include "cuda.h"
+#include "cuda_runtime.h"
+#include "driver_types.h"
+#include "cublas_v2.h"
 #define CUBLAS_SAFE_CALL(call) \
     do { \
         cublasStatus_t  err = (call); \
         if (err != CUBLAS_STATUS_SUCCESS) \
-            nerv_error(L, "cumatrix cublas error: %s", cublasGetErrorString(err)); \
+            nerv_error(L, "cumatrix cublas error: %s at %s:%d", \
+                        cublasGetErrorString(err), __FILE__, __LINE__); \
     } while (0)
 
 #define CUDA_SAFE_CALL(call) \
     do { \
         cudaError_t err = (call); \
         if (err != cudaSuccess) \
-            nerv_error(L, "cumatrix CUDA error: %s", cudaGetErrorString(err)); \
+            nerv_error(L, "cumatrix CUDA error: %s at %s:%d", \
+                            cudaGetErrorString(err), __FILE__, __LINE__); \
     } while (0)
 
 #define CUDA_SAFE_SYNC_CALL(call) \
@@ -52,4 +58,20 @@ static const char *cublasGetErrorString(cublasStatus_t err) {
     }
     return "<unknown>";
 }
+
+#define PROFILE_START \
+    do { \
+        cudaEvent_t start, stop; \
+        cudaEventCreate(&start); \
+        cudaEventCreate(&stop); \
+        cudaEventRecord(start, 0);
+#define PROFILE_STOP \
+        cudaEventRecord(stop, 0); \
+        cudaEventSynchronize(stop); \
+        float milliseconds = 0; \
+        cudaEventElapsedTime(&milliseconds, start, stop); \
+        accu_profile(__func__, milliseconds / 1000); \
+    } while (0);
+
+#define PROFILE_END 
 #endif

@@ -9,12 +9,17 @@ void nerv_matrix_host_float_init(lua_State *L);
 void nerv_matrix_cuda_float_init(lua_State *L);
 void nerv_matrix_host_double_init(lua_State *L);
 void nerv_matrix_cuda_double_init(lua_State *L);
+void nerv_matrix_host_int_init(lua_State *L);
+int print_profile(lua_State *L);
+int clear_profile(lua_State *L);
 
 static const luaL_Reg matrix_methods[] = {
     {"__tostring__", nerv_error_method_not_implemented },
     {"__add__", nerv_error_method_not_implemented },
     {"__sub__", nerv_error_method_not_implemented },
     {"__mul__", nerv_error_method_not_implemented },
+    {"print_profile", print_profile},
+    {"clear_profile", clear_profile},
     {NULL, NULL}
 };
 

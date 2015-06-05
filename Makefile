@@ -16,7 +16,7 @@ CUDA_BASE := /usr/local/cuda-6.5
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
 INCLUDE += $(CUDA_INCLUDE)
 LDFLAGS := -L$(CUDA_BASE)/lib64/  -Wl,-rpath=$(CUDA_BASE)/lib64/ -lcudart -lcublas
-CFLAGS := -Wall -Wextra
+CFLAGS := -Wall -Wextra -O2
 OBJ_DIR := $(BUILD_DIR)/objs
 LUA_DIR := $(BUILD_DIR)/lua
 LIB_DIR := $(BUILD_DIR)/lib
