@@ -76,7 +76,7 @@ static int nerv_matrix_(newindex)(lua_State *L) {
         else
             nerv_error(L, "cannot assign to row vector");
         lua_pushboolean(L, 1);
-        return 2;
+        return 1;
     }
     else
     {
