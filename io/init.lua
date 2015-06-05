@@ -10,7 +10,7 @@ function nerv.ChunkFile:write_chunk(chunk)
     local id = chunk.id
     local type = chunk.__typename
     if id == nil then
-        nerv_error("id of chunk %s must be specified", type)
+        nerv.error("id of chunk %s must be specified", type)
     end
     self:write_chunkdata({id = id,
                             type = type,
