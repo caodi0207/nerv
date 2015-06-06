@@ -44,7 +44,7 @@ size_t read_chunk_header_plain(FILE *fp, int *status) {
     for (i = 0; i < PARAM_HEADER_SIZE; i++)
         if (isdigit(buff[i]))
             size = size * 10 + buff[i] - '0';
-    fprintf(stderr, "header: %lu\n", size);
+/*    fprintf(stderr, "header: %lu\n", size); */
     return size;
 }
 
@@ -91,7 +91,7 @@ const char *read_chunk_metadata(lua_State *L, FILE *fp, const char *fn) {
 #define LINEBUFF_SIZE 1024
     static char buff[7 + LINEBUFF_SIZE] = "return ";
     CHECK_FORMAT(fgets(buff + 7, LINEBUFF_SIZE, fp), buff + 7, fn);
-    fprintf(stderr, "metadata: %s\n", buff);
+    /* fprintf(stderr, "metadata: %s\n", buff); */
     return buff;
 }
 
@@ -104,7 +104,7 @@ void write_chunk_metadata(FILE *fp, const char *metadata_str, int *status) {
         *status = WRITE_ERROR;
         return;
     }
-    fprintf(stderr, "metadata: %s\n", metadata_str);
+    /* fprintf(stderr, "metadata: %s\n", metadata_str); */
 }
 
 
@@ -132,11 +132,11 @@ int nerv_chunk_file_open_read(lua_State *L, const char *fn) {
     if (!fp) nerv_error(L, "Error while opening chunk file: %s", fn);
     offset = ftello(fp);
     lua_newtable(L);
-    fprintf(stderr, "%d\n", (int)offset);
+    /* fprintf(stderr, "%d\n", (int)offset); */
     for (i = 0;; offset += chunk_len, i++)
     {
         ChunkInfo *pci;
-        fprintf(stderr, "reading chunk %d from %d\n", i, (int)offset);
+        /* fprintf(stderr, "reading chunk %d from %d\n", i, (int)offset); */
         /* skip to the begining of chunk i */
         CHECK_FORMAT(fseeko(fp, offset, SEEK_SET), 0, fn);
         /* read header */
@@ -153,8 +153,8 @@ int nerv_chunk_file_open_read(lua_State *L, const char *fn) {
         pci = (ChunkInfo *)malloc(sizeof(ChunkInfo));
         pci->offset = ftello(fp);
         pci->length = chunk_len - (pci->offset - offset);
-        fprintf(stderr, "%d + %d (skip %lu)\n", (int)pci->offset,
-                (int)pci->length, chunk_len);
+        /* fprintf(stderr, "%d + %d (skip %lu)\n", (int)pci->offset,
+                (int)pci->length, chunk_len); */
         luaT_pushudata(L, pci, nerv_chunk_info_tname);
         lua_setfield(L, -2, "chunk");
         /* stack: obj_table, metadata */

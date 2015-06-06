@@ -2,11 +2,15 @@ require 'libnerv'
 nerv.utils = require 'pl.utils'
 
 function nerv.error(fmt, ...)
-    error(nerv.utils.printf("Nerv internal error: " .. fmt .. "\n", ...))
+    error(nerv.utils.printf("[nerv] internal error: " .. fmt .. "\n", ...))
 end
 
 function nerv.error_method_not_implemented()
     nerv.error("method not implemented");
+end
+
+function nerv.info(fmt, ...)
+    nerv.utils.printf("[nerv] info: " .. fmt .. "\n", ...)
 end
 
 -- Torch C API wrapper
