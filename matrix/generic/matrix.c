@@ -6,6 +6,7 @@ extern const char *nerv_matrix_(tname);
 extern const char *MATRIX_BASE_TNAME;
 
 void nerv_matrix_(data_free)(lua_State *L, Matrix *self) {
+    (void)L;
     assert(*self->data_ref > 0);
     if (--(*self->data_ref) == 0)
     {

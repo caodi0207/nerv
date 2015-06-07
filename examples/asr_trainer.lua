@@ -33,6 +33,7 @@ function build_trainer(ifname)
             collectgarbage("collect")
         end
         print_stat(crit)
+        nerv.CuMatrix.print_profile()
         if (not bp) and prefix ~= nil then
             nerv.info("writing back...")
             local fname = string.format("%s_cv%.3f.nerv",
@@ -71,7 +72,9 @@ for i = 1, max_iter do
     nerv.info("[TR] training set %d: %.3f", i, accu_tr)
     local accu_new = trainer(
                         string.format("%s_%s_iter_%d_lr%f_tr%.3f",
-                            string.gsub(pf0, "(.*/)(.*)%..*", "%2"),
+                            string.gsub(
+                                (string.gsub(pf0, "(.*/)(.*)", "%2")),
+                                "(.*)%..*", "%1"),
                             os.date("%Y%m%d%H%M%S"),
                             i, gconf.lrate,
                             accu_tr),
@@ -91,5 +94,5 @@ for i = 1, max_iter do
     if accu_new > accu_best then
         accu_best = accu_new
     end
-    nerv.Matrix.print_profile()
+--    nerv.Matrix.print_profile()
 end

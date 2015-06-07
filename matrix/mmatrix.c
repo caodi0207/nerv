@@ -1,4 +1,15 @@
 #define NERV_GENERIC_MMATRIX
+#include "../common.h"
+void nerv_matrix_host_float_init(lua_State *L);
+void nerv_matrix_host_double_init(lua_State *L);
+void nerv_matrix_host_int_init(lua_State *L);
+
+void nerv_mmatrix_init(lua_State *L) {
+    nerv_matrix_host_float_init(L);
+    nerv_matrix_host_double_init(L);
+    nerv_matrix_host_int_init(L);
+}
+
 #define MATRIX_USE_FLOAT
 #define host_matrix_(NAME) host_matrix_float_##NAME
 #define nerv_matrix_(NAME) nerv_matrix_host_float_##NAME
@@ -10,6 +21,7 @@ const char *nerv_matrix_(tname) = "nerv.MMatrixFloat";
 #undef MATRIX_ELEM
 #undef MATRIX_ELEM_PTR
 #undef MATRIX_ELEM_FMT
+#undef MATRIX_ELEM_WRITE_FMT
 
 #define NERV_GENERIC_MMATRIX
 #define MATRIX_USE_DOUBLE
@@ -23,6 +35,7 @@ const char *nerv_matrix_(tname) = "nerv.MMatrixDouble";
 #undef MATRIX_ELEM
 #undef MATRIX_ELEM_PTR
 #undef MATRIX_ELEM_FMT
+#undef MATRIX_ELEM_WRITE_FMT
 
 #define NERV_GENERIC_MMATRIX
 #define MATRIX_USE_INT
