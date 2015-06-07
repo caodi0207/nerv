@@ -443,6 +443,8 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
 static void cuda_matrix_(init)(lua_State *L) {
     luaN_append_methods(L, nerv_matrix_(extra_methods));
     cublasCreate(&cublas_handle);
+    cudaEventCreate(&profile_start);
+    cudaEventCreate(&profile_stop);
     profile = hashmap_create(PROFILE_HASHMAP_SIZE, bkdr_hash, strcmp);
 }
 

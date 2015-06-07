@@ -2,6 +2,7 @@
 #include "../common.h"
 #include "cuda_helper.h"
 static cublasHandle_t cublas_handle;
+static cudaEvent_t profile_start, profile_stop;
 static HashMap *profile;
 
 int print_profile(lua_State *L) {

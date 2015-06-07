@@ -6,8 +6,8 @@ gconf = {lrate = 0.8, wcost = 1e-6, momentum = 0.9,
         tr_scp = "/slfs1/users/mfy43/swb_ivec/train_bp.scp",
         cv_scp = "/slfs1/users/mfy43/swb_ivec/train_cv.scp",
         htk_conf = "/slfs1/users/mfy43/swb_ivec/plp_0_d_a.conf",
-        global_transf = "global_transf.nerv",
-        initialized_param = "converted.nerv",
+        global_transf = "/slfs1/users/mfy43/swb_global_transf.nerv",
+        initialized_param = "/slfs1/users/mfy43/swb_init.nerv",
         debug = false}
 
 function make_param_repo(param_file)
@@ -154,10 +154,10 @@ end
 
 function print_stat(crit)
     nerv.info("*** training stat begin ***")
-    nerv.utils.printf("cross entropy:\t%.8f\n", crit.total_ce)
-    nerv.utils.printf("correct:\t%d\n", crit.total_correct)
-    nerv.utils.printf("frames:\t%d\n", crit.total_frames)
-    nerv.utils.printf("err/frm:\t%.8f\n", crit.total_ce / crit.total_frames)
-    nerv.utils.printf("accuracy:\t%.3f%%\n", get_accuracy(crit))
+    nerv.utils.printf("cross entropy:\t\t%.8f\n", crit.total_ce)
+    nerv.utils.printf("correct:\t\t%d\n", crit.total_correct)
+    nerv.utils.printf("frames:\t\t\t%d\n", crit.total_frames)
+    nerv.utils.printf("err/frm:\t\t%.8f\n", crit.total_ce / crit.total_frames)
+    nerv.utils.printf("accuracy:\t\t%.3f%%\n", get_accuracy(crit))
     nerv.info("*** training stat end ***")
 end

@@ -10,7 +10,9 @@ function nerv.error_method_not_implemented()
 end
 
 function nerv.info(fmt, ...)
-    nerv.utils.printf("[nerv] info: " .. fmt .. "\n", ...)
+    nerv.utils.printf(
+        string.format("(%s)[nerv] info: %s\n",
+            os.date("%H:%M:%S %F"), fmt), ...)
 end
 
 -- Torch C API wrapper
