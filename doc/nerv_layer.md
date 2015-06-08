@@ -25,6 +25,7 @@ Abstract method.
 Given `input` and the current parameters, propagate and store the result in `output`.
 * __void Layer.back_propagate(Layer self, Matrix next_bp_err, Matrix bp_err, Matrix input, Matrix output)__  
 Abstract method.  
+Calculate the error on the inputs and store them in `next_bp_err`.
 
 * __void Layer.check_dim_len(int len_in, int len_out)__  
 Check whether `#self.dim_in == len_in` and `#self.dim_out == len_out`, if violated, an error will be posted.
