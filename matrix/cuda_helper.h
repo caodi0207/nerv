@@ -62,17 +62,14 @@ static const char *cublasGetErrorString(cublasStatus_t err) {
 
 #define PROFILE_START \
     do { \
-        cudaEvent_t start, stop; \
-        cudaEventCreate(&start); \
-        cudaEventCreate(&stop); \
-        cudaEventRecord(start, 0);
+        cudaEventRecord(profile_start, 0);
 #define PROFILE_STOP \
-        cudaEventRecord(stop, 0); \
-        cudaEventSynchronize(stop); \
+        cudaEventRecord(profile_stop, 0); \
+        cudaEventSynchronize(profile_stop); \
         float milliseconds = 0; \
-        cudaEventElapsedTime(&milliseconds, start, stop); \
+        cudaEventElapsedTime(&milliseconds, profile_start, profile_stop); \
         accu_profile(__func__, milliseconds / 1000); \
     } while (0);
 
-#define PROFILE_END 
+#define PROFILE_END
 #endif

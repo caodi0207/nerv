@@ -3,7 +3,7 @@
 int nerv_error(lua_State *L, const char *err_mesg_fmt, ...) {
     va_list ap;
     va_start(ap, err_mesg_fmt);
-    lua_pushstring(L, "Nerv internal error: ");
+    lua_pushstring(L, "[nerv] internal error: ");
     lua_pushvfstring(L, err_mesg_fmt, ap); 
     lua_concat(L, 2);
     lua_error(L);

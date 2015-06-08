@@ -11,11 +11,9 @@
 #define MATRIX_BASE_TNAME nerv_matrix_cuda_tname
 #define NERV_GENERIC_MATRIX
 #define NERV_GENERIC_CUKERNEL
-#define PROFILE_HASHMAP_SIZE 123457
 #include "../../common.h"
 #include "../cukernel.h"
 #include "../cuda_helper.h"
-#include <string.h>
 
 Matrix *nerv_matrix_(new_)(lua_State *L, long nrow, long ncol);
 void nerv_matrix_(data_free)(lua_State *L, Matrix *self);
@@ -442,8 +440,6 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
 
 static void cuda_matrix_(init)(lua_State *L) {
     luaN_append_methods(L, nerv_matrix_(extra_methods));
-    cublasCreate(&cublas_handle);
-    profile = hashmap_create(PROFILE_HASHMAP_SIZE, bkdr_hash, strcmp);
 }
 
 static void cuda_matrix_(free)(lua_State *L, MATRIX_ELEM *ptr) {

@@ -87,15 +87,9 @@ int nerv_matrix_(save)(lua_State *L) {
         MATRIX_ELEM *row = MATRIX_ROW_PTR(self, i);
         for (j = 0; j < ncol; j++)
             if (fprintf(fp, MATRIX_ELEM_WRITE_FMT " ", row[j]) < 0)
-            {
-                free(self);
                 return 0;
-            }
         if (fprintf(fp, "\n") < 0)
-        {
-             free(self);
              return 0;
-        }
     }
     return 0;
 }

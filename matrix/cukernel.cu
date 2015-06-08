@@ -9,6 +9,7 @@
 #undef MATRIX_ELEM
 #undef MATRIX_ELEM_PTR
 #undef MATRIX_ELEM_FMT
+#undef MATRIX_ELEM_WRITE_FMT
 
 #define cudak_(NAME) cudak_double_ ## NAME
 #define MATRIX_USE_DOUBLE
