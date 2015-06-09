@@ -28,12 +28,14 @@ Nerv uses [luaT]\(a [Torch] library\) to define lua class in C.
 Enables object-oriented programming in Nerv.
 * __[The Nerv utility functions](doc/nerv.md)__  
 Inlcudes some utility functions from luaT to implement __Nerv.Class__.
-* __[The Nerv IO Package](doc/nerv_io.md)__  
-The IO package is used to read and write parameters to file.
 * __[The Nerv Matrix Package](doc/nerv_matrix.md)__  
 The matrix package is a basic package in __Nerv__ that is used to store and manipulate matrices.
+* __[The Nerv IO Package](doc/nerv_io.md)__  
+The IO package is used to read and write parameters to file.
 * __[The Nerv Parameter Package](doc/nerv_param.md)__  
 The parameter package is used to store, read model parameters from file.
+* __[The Nerv Layer Package](doc/nerv_layer.md)__  
+The layer package is used to define propagation and backpropagation of different type of layers.
 
 [luaT]:https://github.com/torch/torch7/tree/master/lib/luaT
 [Torch]:https://github.com/torch
