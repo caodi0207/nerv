@@ -4,12 +4,20 @@ Part of the [Nerv](../README.md) toolkit.
 ##Description##
 __nerv.Layer__ is the base class and most of its methods are abstract.  
 ###Class hierarchy and their members###
-* __nerv.AffineLayer__ inherits __nerv.Layer__. 
+* __nerv.Layer__.  
+	* `table dim_in` It specifies the dimensions of the inputs.  
+	* `table dim_out` It specifies the dimensions of the outputs.  
+	* `string id` ID of this layer.
+	* `table gconf` Stores the `global_conf`.
+* __nerv.AffineLayer__ inherits __nerv.Layer__, both `#dim_in` and `#dim_out` are 1.
 	* `MatrixParam ltp` The liner transform parameter.
 	* `BiasParam bp` The bias parameter.
-	* `table dim_in` should be of length 1.
-	* `table dim_out` should be of length 1.
-
+* __nerv.BiasLayer__ inherits __nerv.Layer__, both `#dim_in` nad `#dim_out` are 1.
+	* `BiasParam bias` The bias parameter.
+* __nerv.SigmoidLayer__ inherits __nerv.Layer__, both `#dim_in` and `#dim_out` are 1.
+* __nerv.SoftmaxCELayer__ inherits __nerv.Layer__, `#dim_in` is 2 and `#dim_out` is 1.
+	* `float total_ce` 
+	* `int total_frams` Records how many frames have passed.
 ##Methods##
 * __void Layer.\_\_init(Layer self, string id, table global_conf, table layer_conf)__  
 Abstract method.  
@@ -30,5 +38,6 @@ Calculate the error on the inputs and store them in `next_bp_err`.
 * __void Layer.check_dim_len(int len_in, int len_out)__  
 Check whether `#self.dim_in == len_in` and `#self.dim_out == len_out`, if violated, an error will be posted.
 * __void Layer.get_params(Layer self)__  
-Abstract method.
+Abstract method.  
+The layer should return a list containing its parameters.
 
