@@ -13,7 +13,7 @@ function SoftmaxCELayer:__init(id, global_conf, layer_conf)
 end
 
 function SoftmaxCELayer:init()
-    if self.dim_in[1] ~= self.dim_in[1] then
+    if self.dim_in[1] ~= self.dim_in[2] then
         nerv.error("mismatching dimensions of previous network output and labels")
     end
     self.total_ce = 0.0
