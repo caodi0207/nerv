@@ -29,7 +29,7 @@ function Layer:__init(id, global_conf, layer_conf)
     nerv.error_method_not_implemented()
 end
 
-function Layer:init(id)
+function Layer:init()
     nerv.error_method_not_implemented()
 end
 
