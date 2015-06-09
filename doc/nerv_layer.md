@@ -15,9 +15,11 @@ __nerv.Layer__ is the base class and most of its methods are abstract.
 * __nerv.BiasLayer__ inherits __nerv.Layer__, both `#dim_in` nad `#dim_out` are 1.
 	* `BiasParam bias` The bias parameter.
 * __nerv.SigmoidLayer__ inherits __nerv.Layer__, both `#dim_in` and `#dim_out` are 1.
-* __nerv.SoftmaxCELayer__ inherits __nerv.Layer__, `#dim_in` is 2 and `#dim_out` is 1.
-	* `float total_ce` 
-	* `int total_frams` Records how many frames have passed.
+* __nerv.SoftmaxCELayer__ inherits __nerv.Layer__, `#dim_in` is 2 and `#dim_out` is 0. `input[1]` is the input to the softmax layer, `input[2]` is the reference distribution.
+	* `float total_ce` Records the accumlated cross entropy value.
+	* `int total_frams` Records how many frames have passed.  
+	* `bool compressed` The reference distribution can be a one-hot format. This feature is enabled by `layer_conf.compressed`.
+
 ##Methods##
 * __void Layer.\_\_init(Layer self, string id, table global_conf, table layer_conf)__  
 Abstract method.  
