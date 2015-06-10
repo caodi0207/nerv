@@ -51,5 +51,5 @@ function CombinerLayer:back_propagate(next_bp_err, bp_err, input, output)
 end
 
 function CombinerLayer:get_params()
-    return {self.lambda}
+    return {}
 end
