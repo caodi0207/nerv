@@ -8,12 +8,12 @@ LIBS := libnerv.so
 LUA_LIBS := matrix/init.lua io/init.lua nerv.lua \
 			pl/utils.lua pl/compat.lua \
 			layer/init.lua layer/affine.lua layer/sigmoid.lua layer/softmax_ce.lua \
-			layer/window.lua layer/bias.lua \
+			layer/window.lua layer/bias.lua layer/combiner.lua layer/mse.lua \
 			nn/init.lua nn/layer_repo.lua nn/param_repo.lua nn/layer_dag.lua \
 			io/sgd_buffer.lua
 INCLUDE := -I build/luajit-2.0/include/luajit-2.0/ -DLUA_USE_APICHECK
-CUDA_BASE := /usr/local/cuda-6.5
-#CUDA_BASE := /usr/local/cuda-5.0
+#CUDA_BASE := /usr/local/cuda-6.5
+CUDA_BASE := /usr/local/cuda-5.0
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
 INCLUDE += $(CUDA_INCLUDE)
 LDFLAGS := -L$(CUDA_BASE)/lib64/  -Wl,-rpath=$(CUDA_BASE)/lib64/ -lcudart -lcublas

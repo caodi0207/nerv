@@ -26,6 +26,7 @@ typedef struct HashMap {
 HashMap *hashmap_create(size_t size, HashKey_t hfunc, HashMapCmp_t cmp);
 void *hashmap_getval(HashMap *h, const char *key);
 void hashmap_setval(HashMap *h, const char *key, void *val);
+void hashmap_clear(HashMap *h);
 
 size_t bkdr_hash(const char *key);
 

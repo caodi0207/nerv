@@ -14,6 +14,7 @@ void cudak_(cuda_add_row)(const Matrix *a, Matrix *b, double beta);
 void cudak_(cuda_fill)(Matrix *a, double val);
 void cudak_(cuda_expand_frm)(const Matrix *a, Matrix *b, int context);
 void cudak_(cuda_rearrange_frm)(const Matrix *a, Matrix *b, int step);
-void cudak_(cuda_scale_row)(const Matrix *a, Matrix *b);
+void cudak_(cuda_scale_rows_by_row)(const Matrix *a, Matrix *b);
+void cudak_(cuda_scale_rows_by_col)(const Matrix *a, Matrix *b);
 void cudak_(cuda_decompress)(const Matrix *a, Matrix *b);
 #endif

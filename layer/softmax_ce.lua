@@ -36,8 +36,12 @@ function SoftmaxCELayer:propagate(input, output)
         label = label:decompress(input[1]:ncol())
     end
     ce:mul_elem(ce, label)
+    ce = ce:rowsum()
+    if output[1] ~= nil then
+        output[1]:copy_fromd(ce)
+    end
     -- add total ce
-    self.total_ce = self.total_ce - ce:rowsum():colsum()[0]
+    self.total_ce = self.total_ce - ce:colsum()[0]
     self.total_frames = self.total_frames + soutput:nrow()
     -- TODO: add colsame for uncompressed label
     if self.compressed then
@@ -51,7 +55,11 @@ function SoftmaxCELayer:back_propagate(next_bp_err, bp_err, input, output)
     if self.compressed then
         label = label:decompress(input[1]:ncol())
     end
-    next_bp_err[1]:add(self.soutput, label, 1.0, -1.0)
+    local nbe = next_bp_err[1]
+    nbe:add(self.soutput, label, 1.0, -1.0)
+    if bp_err[1] ~= nil then
+        nbe:scale_rows_by_col(bp_err[1])
+    end
 end
 
 function SoftmaxCELayer:get_params()

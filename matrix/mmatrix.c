@@ -1,10 +1,12 @@
 #define NERV_GENERIC_MMATRIX
+#include <stdlib.h>
 #include "../common.h"
 void nerv_matrix_host_float_init(lua_State *L);
 void nerv_matrix_host_double_init(lua_State *L);
 void nerv_matrix_host_int_init(lua_State *L);
 
 void nerv_mmatrix_init(lua_State *L) {
+    srand(1);
     nerv_matrix_host_float_init(L);
     nerv_matrix_host_double_init(L);
     nerv_matrix_host_int_init(L);
