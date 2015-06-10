@@ -9,7 +9,7 @@ __nerv.Layer__ is the base class and most of its methods are abstract.
 	* `table dim_out` It specifies the dimensions of the outputs.  
 	* `string id` ID of this layer.
 	* `table gconf` Stores the `global_conf`.
-* __nerv.AffineLayer__ inherits __nerv.Layer__, both `#dim_in` and `#dim_out` are 1.
+* __nerv.AffineLayer__ inherits __nerv.Layer__, both `#dim_in` and `#dim_out` are 1. 
 	* `MatrixParam ltp` The liner transform parameter.
 	* `BiasParam bp` The bias parameter.
 * __nerv.BiasLayer__ inherits __nerv.Layer__, both `#dim_in` nad `#dim_out` are 1.
@@ -43,3 +43,129 @@ Check whether `#self.dim_in == len_in` and `#self.dim_out == len_out`, if violat
 Abstract method.  
 The layer should return a list containing its parameters.
 
+##Examples##
+* a basic example using __Nerv__ layers to a linear classification.
+
+```
+require 'math'
+
+require 'layer.affine'
+require 'layer.softmax_ce'
+
+--[[Example using layers, a simple two-classification problem]]--
+
+function calculate_accurate(networkO, labelM)
+    sum = 0
+    for i = 0, networkO:nrow() - 1, 1 do
+        if (labelM[i][0] == 1 and networkO[i][0] >= 0.5) then
+            sum = sum + 1
+        end
+        if (labelM[i][1] == 1 and networkO[i][1] >= 0.5) then
+            sum = sum + 1
+        end 
+    end
+    return sum
+end
+
+--[[begin global setting and data generation]]--
+global_conf =  {lrate = 10, 
+                wcost = 1e-6,
+                momentum = 0.9,
+                cumat_type = nerv.CuMatrixFloat}
+
+input_dim = 5
+data_num = 100
+ansV = nerv.CuMatrixFloat(input_dim, 1)
+for i = 0, input_dim - 1, 1 do
+    ansV[i][0] = math.random() - 0.5
+end
+ansB = math.random() - 0.5
+print('displaying ansV')
+print(ansV)
+print('displaying ansB(bias)')
+print(ansB)
+
+dataM = nerv.CuMatrixFloat(data_num, input_dim)
+for i = 0, data_num - 1, 1 do
+    for j = 0, input_dim - 1, 1 do
+        dataM[i][j] = math.random() * 2 - 1
+    end
+end
+refM = nerv.CuMatrixFloat(data_num, 1)
+refM:fill(ansB)
+refM:mul(dataM, ansV, 1, 1) --refM = dataM * ansV + ansB
+
+labelM = nerv.CuMatrixFloat(data_num, 2)
+for i = 0, data_num - 1, 1 do
+    if (refM[i][0] > 0) then
+        labelM[i][0] = 1 
+        labelM[i][1] = 0
+    else
+        labelM[i][0] = 0
+        labelM[i][1] = 1
+    end
+end
+--[[global setting and data generation end]]--
+
+
+--[[begin network building]]--
+--parameters
+affineL_ltp = nerv.LinearTransParam('AffineL_ltp', global_conf)
+affineL_ltp.trans = nerv.CuMatrixFloat(input_dim, 2)
+for i = 0, input_dim - 1, 1 do
+    for j = 0, 1, 1 do
+        affineL_ltp.trans[i][j] = math.random() - 0.5 
+    end
+end
+affineL_bp = nerv.BiasParam('AffineL_bp', global_conf)
+affineL_bp.trans = nerv.CuMatrixFloat(1, 2)
+for j = 0, 1, 1 do
+    affineL_bp.trans[j] = math.random() - 0.5
+end
+
+--layers
+affineL = nerv.AffineLayer('AffineL', global_conf, {['ltp'] = affineL_ltp,
+                                                      ['bp'] = affineL_bp,
+                                                      dim_in = {input_dim},
+                                                      dim_out = {2}})
+softmaxL = nerv.SoftmaxCELayer('softmaxL', global_conf, {dim_in = {2, 2},
+                                                         dim_out = {}})
+print('layers initializing...')
+affineL:init()
+softmaxL:init()
+--[[network building end]]--
+
+
+--[[begin space allocation]]--
+print('network input&output&error space allocation...')
+affineI = {dataM} --input to the network is data
+affineO = {nerv.CuMatrixFloat(data_num, 2)}
+softmaxI = {affineO[1], labelM}
+softmaxO = {nerv.CuMatrixFloat(data_num, 2)} 
+
+affineE = {nerv.CuMatrixFloat(data_num, 2)}
+--[[space allocation end]]--
+
+
+--[[begin training]]--
+ce_last = 0
+for l = 0, 10, 1 do
+    affineL:propagate(affineI, affineO)
+    softmaxL:propagate(softmaxI, softmaxO)
+    softmaxO[1]:softmax(softmaxI[1])
+
+    softmaxL:back_propagate(affineE, nil, softmaxI, softmaxO)
+    
+    affineL:update(affineE, affineI, affineO) 
+
+    if (l % 5 == 0) then
+        nerv.utils.printf("training iteration %d finished\n", l)
+        nerv.utils.printf("cross entropy: %.8f\n", softmaxL.total_ce - ce_last)
+        ce_last = softmaxL.total_ce 
+        nerv.utils.printf("accurate labels: %d\n", calculate_accurate(softmaxO[1], labelM))
+        nerv.utils.printf("total frames processed: %.8f\n", softmaxL.total_frames)
+    end
+end
+--[[end training]]--
+
+```
