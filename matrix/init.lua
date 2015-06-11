@@ -42,7 +42,7 @@ function nerv.CuMatrix:__sub__(b)
 end
 
 function nerv.CuMatrix:__mul__(b)
-    c = self:create()
+    c = nerv.get_type(self.__typename)(self:nrow(), b:ncol())
     c:mul(self, b, 1.0, 0.0, 'N', 'N')
     return c
 end
