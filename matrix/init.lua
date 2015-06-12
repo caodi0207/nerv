@@ -27,6 +27,22 @@ function nerv.Matrix:__tostring__()
     return table.concat(strt)
 end
 
+--func: function
+--All entrys in the matrix will be assigned by calling func()
+function nerv.Matrix:randomize(func)
+    if (self:nrow() == 1) then
+        for j = 0, self:ncol() - 1, 1 do
+            self[j] = func()
+        end
+    else
+        for i = 0, self:nrow() - 1, 1 do
+            for j = 0, self:ncol() - 1, 1 do
+                self[i][j] = func()
+            end
+        end
+    end
+end
+
 nerv.MMatrixInt.fmt = "%d "
 
 function nerv.CuMatrix:__add__(b)
