@@ -49,12 +49,14 @@ param_config : {param1 = paramID1, param2 = paramID2}
 __LayerRepo__ will merge `param_config` into `layer_config` and construct a layer by calling `layer_type(layerid, global_conf, layer_config)`.
 
 * __LayerRepo.get_layer(self, lid)__  
- 	* Returns  
-      	__nerv.LayerRepo__ the layer with ID `lid`.
- 	* Parameters
-    	`self`:__nerv.LayerRepo__.  
-    	`lid`:__string__, the ID of the layer to fetch.
-
+	* Returns  
+		__nerv.LayerRepo__, the layer with ID `lid`.
+	* Parameters  
+		`self`:__nerv.LayerRepo__.  
+    	`lid`:__string__, the ID of the layer to fetch.  
+    * Description   
+    	Returns the layer with ID `lid`.
+		
 ###__nerv.DAGLayer__###
 * __DAGLayer:\_\_init(id, global_conf, layer_conf, [a, b, ...])__  
 	Returns: 
