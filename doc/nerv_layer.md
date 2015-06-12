@@ -141,7 +141,8 @@ print('network input&output&error space allocation...')
 affineI = {dataM} --input to the network is data
 affineO = {nerv.CuMatrixFloat(data_num, 2)}
 softmaxI = {affineO[1], labelM}
-softmaxO = {nerv.CuMatrixFloat(data_num, 2)} 
+softmaxO = {}
+output = nerv.CuMatrixFloat(data_num, 2)
 
 affineE = {nerv.CuMatrixFloat(data_num, 2)}
 --[[space allocation end]]--
@@ -152,9 +153,9 @@ ce_last = 0
 for l = 0, 10, 1 do
     affineL:propagate(affineI, affineO)
     softmaxL:propagate(softmaxI, softmaxO)
-    softmaxO[1]:softmax(softmaxI[1])
+    output:softmax(softmaxI[1])
 
-    softmaxL:back_propagate(affineE, nil, softmaxI, softmaxO)
+    softmaxL:back_propagate(affineE, {}, softmaxI, softmaxO)
     
     affineL:update(affineE, affineI, affineO) 
 
@@ -162,10 +163,9 @@ for l = 0, 10, 1 do
         nerv.utils.printf("training iteration %d finished\n", l)
         nerv.utils.printf("cross entropy: %.8f\n", softmaxL.total_ce - ce_last)
         ce_last = softmaxL.total_ce 
-        nerv.utils.printf("accurate labels: %d\n", calculate_accurate(softmaxO[1], labelM))
+        nerv.utils.printf("accurate labels: %d\n", calculate_accurate(output, labelM))
         nerv.utils.printf("total frames processed: %.8f\n", softmaxL.total_frames)
     end
 end
 --[[end training]]--
-
 ```

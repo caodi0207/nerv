@@ -12,7 +12,24 @@ it contains __nerv.LayerRepo__, __nerv.ParamRepo__, and __nerv.DAGLayer__(inheri
 	* `table layers` Contains the mapping of layer ID to layer object.
 objects.
 * __nerv.DAGLayer__ inherits __nerv.Layer__.  
-
+	* `table layers` Mapping from a layer ID to its "ref". A ref is of the structure below:
+	 ```
+     nerv.Layer layer --its layer
+     nerv.Matrix inputs	
+     nerv.Matrix outputs 
+     nerv.Matrix err_inputs
+     nerv.Matrix err_outputs
+     table next_layers
+     int input_len -- #dim_in
+     int output_len -- #dim_out
+     int in_deg 
+     bool visited -- used in topology sort
+     ```
+	* `inputs`
+	* `outputs`
+	* `parsed_conn`
+	* `queue`
+	
 ##Methods##
 ###__nerv.ParamRepo__###
 * __void ParamRepo:\_\_init(table param_files)__  
@@ -30,3 +47,19 @@ layer : layerid = {param_config, layer_config}
 param_config : {param1 = paramID1, param2 = paramID2}
 ```
 __LayerRepo__ will merge `param_config` into `layer_config` and construct a layer by calling `layer_type(layerid, global_conf, layer_config)`.
+
+* __[nerv.Layer] LayerRepo.get_layer([LayerRepo] self, [string] lid)__  
+`self`, __nerv.LayerRepo__, ...
+Returns the layer with ID `lid`.
+
+###__nerv.DAGLayer__###
+* __DAGLayer:\_\_init(id, global_conf, layer_conf, [a, b, ...])__  
+	Returns: 
+	__string__, dfdfdfddf
+    __asasa__, asasasasa
+    Parameters:
+	`id`: __string__, the ID of the layer.  
+    `global_conf`:__table__,the global config.  
+	
+    sasasa
+     
