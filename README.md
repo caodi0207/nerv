@@ -36,7 +36,8 @@ The IO package is used to read and write parameters to file.
 The parameter package is used to store, read model parameters from file.
 * __[The Nerv Layer Package](doc/nerv_layer.md)__  
 The layer package is used to define propagation and backpropagation of different type of layers.
-
+* __[The Nerv NN Package](doc/nerv_nn.md)__  
+The nn package is for organizing a neural network, it contains __nerv.LayerRepo__, __nerv.ParamRepo__, and __nerv.DAGLayer__.
 [luaT]:https://github.com/torch/torch7/tree/master/lib/luaT
 [Torch]:https://github.com/torch
 [sync-help]:https://help.github.com/articles/syncing-a-fork/
