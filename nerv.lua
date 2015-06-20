@@ -1,17 +1,32 @@
 require 'libnerv'
-nerv.utils = require 'pl.utils'
 
 function nerv.error(fmt, ...)
-    error(nerv.utils.printf("[nerv] internal error: " .. fmt .. "\n", ...))
+    error(nerv.printf("[nerv] internal error: " .. fmt .. "\n", ...))
 end
 
 function nerv.error_method_not_implemented()
     nerv.error("method not implemented");
 end
 
-function nerv.info(fmt, ...)
-    nerv.utils.printf(
+function nerv.printf(fmt, ...)
+    io.write(string.format(fmt, ...))
+end
+
+function nerv.mesg_with_timestamp(fmt, ...)
+    nerv.printf(
         string.format("(%s)[nerv] info: %s\n",
+            os.date("%H:%M:%S %F"), fmt), ...)
+end
+
+function nerv.info(fmt, ...)
+    nerv.printf(
+        string.format("(%s)[nerv] info: %s\n",
+            os.date("%H:%M:%S %F"), fmt), ...)
+end
+
+function nerv.warning(fmt, ...)
+    nerv.printf(
+        string.format("(%s)[nerv] warning: %s\n",
             os.date("%H:%M:%S %F"), fmt), ...)
 end
 
@@ -77,8 +92,20 @@ function table.tostring(tbl)
   return "{" .. table.concat(result, ",") .. "}"
 end
 
-function nerv.get_type(typename)
-    return assert(loadstring("return " .. typename))()
+function nerv.get_type(tname)
+    return assert(loadstring("return " .. tname))()
+end
+
+function nerv.is_type(obj, tname)
+    local mt0 = nerv.getmetatable(tname)
+    local mt = getmetatable(obj)
+    while mt do
+        if mt == mt0 then
+            return true
+        end
+        mt = getmetatable(mt)
+    end
+    return false
 end
 
 require 'matrix.init'

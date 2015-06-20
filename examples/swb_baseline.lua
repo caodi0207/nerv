@@ -6,13 +6,9 @@ gconf = {lrate = 0.8, wcost = 1e-6, momentum = 0.9,
         tr_scp = "/slfs1/users/mfy43/swb_ivec/train_bp.scp",
         cv_scp = "/slfs1/users/mfy43/swb_ivec/train_cv.scp",
         htk_conf = "/slfs1/users/mfy43/swb_ivec/plp_0_d_a.conf",
-        global_transf = "/slfs1/users/mfy43/swb_global_transf.nerv",
-        initialized_param = "/slfs1/users/mfy43/swb_init.nerv",
+        initialized_param = {"/slfs1/users/mfy43/swb_init.nerv",
+                "/slfs1/users/mfy43/swb_global_transf.nerv"},
         debug = false}
-
-function make_param_repo(param_file)
-    return nerv.ParamRepo({param_file, gconf.global_transf})
-end
 
 function make_sublayer_repo(param_repo)
     return nerv.LayerRepo(
@@ -60,7 +56,7 @@ function make_sublayer_repo(param_repo)
         },
         ["nerv.SoftmaxCELayer"] =
         {
-            criterion = {{}, {dim_in = {3001, 1}, dim_out = {}, compressed = true}}
+            ce_crit = {{}, {dim_in = {3001, 1}, dim_out = {1}, compressed = true}}
         }
     }, param_repo, gconf)
 end
@@ -82,7 +78,7 @@ function make_layer_repo(sublayer_repo, param_repo)
                 }
             }},
             main = {{}, {
-                dim_in = {429, 1}, dim_out = {},
+                dim_in = {429, 1}, dim_out = {1},
                 sub_layers = sublayer_repo,
                 connections = {
                     ["<input>[1]"] = "affine0[1]",
@@ -100,8 +96,9 @@ function make_layer_repo(sublayer_repo, param_repo)
                     ["sigmoid5[1]"] = "affine6[1]",
                     ["affine6[1]"] = "sigmoid6[1]",
                     ["sigmoid6[1]"] = "affine7[1]",
-                    ["affine7[1]"] = "criterion[1]",
-                    ["<input>[2]"] = "criterion[2]"
+                    ["affine7[1]"] = "ce_crit[1]",
+                    ["<input>[2]"] = "ce_crit[2]",
+                    ["ce_crit[1]"] = "<output>[1]"
                 }
             }}
         }
@@ -109,55 +106,61 @@ function make_layer_repo(sublayer_repo, param_repo)
 end
 
 function get_criterion_layer(sublayer_repo)
-    return sublayer_repo:get_layer("criterion")
+    return sublayer_repo:get_layer("ce_crit")
 end
 
 function get_network(layer_repo)
     return layer_repo:get_layer("main")
 end
 
-function make_reader(scp_file, layer_repo)
-    return nerv.TNetReader(gconf,
-        {
-            id = "main_scp",
-            scp_file = scp_file,
-            conf_file = gconf.htk_conf,
-            frm_ext = gconf.frm_ext,
-            mlfs = {
-                phone_state = {
-                    file = "/slfs1/users/mfy43/swb_ivec/ref.mlf",
-                    format = "map",
-                    format_arg = "/slfs1/users/mfy43/swb_ivec/dict",
-                    dir = "*/",
-                    ext = "lab"
-                }
-            },
-            global_transf = layer_repo:get_layer("global_transf")
-        })
+function make_readers(scp_file, layer_repo)
+    return {
+                {reader = nerv.TNetReader(gconf,
+                    {
+                        id = "main_scp",
+                        scp_file = scp_file,
+                        conf_file = gconf.htk_conf,
+                        frm_ext = gconf.frm_ext,
+                        mlfs = {
+                            phone_state = {
+                                file = "/slfs1/users/mfy43/swb_ivec/ref.mlf",
+                                format = "map",
+                                format_arg = "/slfs1/users/mfy43/swb_ivec/dict",
+                                dir = "*/",
+                                ext = "lab"
+                            }
+                        },
+                        global_transf = layer_repo:get_layer("global_transf")
+                    }),
+                data = {main_scp = 429, phone_state = 1}}
+            }
 end
 
-function make_buffer(reader, buffer)
+function make_buffer(readers)
     return nerv.SGDBuffer(gconf,
         {
             buffer_size = gconf.buffer_size,
             randomize = gconf.randomize,
-            readers = {
-                { reader = reader,
-                  data = {main_scp = 429, phone_state = 1}}
-            }
+            readers = readers
         })
 end
 
-function get_accuracy(crit)
-    return crit.total_correct / crit.total_frames * 100
+function get_input_order()
+    return {"main_scp", "phone_state"}
 end
 
-function print_stat(crit)
+function get_accuracy(sublayer_repo)
+    local ce_crit = sublayer_repo:get_layer("ce_crit")
+    return ce_crit.total_correct / ce_crit.total_frames * 100
+end
+
+function print_stat(sublayer_repo)
+    local ce_crit = sublayer_repo:get_layer("ce_crit")
     nerv.info("*** training stat begin ***")
-    nerv.utils.printf("cross entropy:\t\t%.8f\n", crit.total_ce)
-    nerv.utils.printf("correct:\t\t%d\n", crit.total_correct)
-    nerv.utils.printf("frames:\t\t\t%d\n", crit.total_frames)
-    nerv.utils.printf("err/frm:\t\t%.8f\n", crit.total_ce / crit.total_frames)
-    nerv.utils.printf("accuracy:\t\t%.3f%%\n", get_accuracy(crit))
+    nerv.printf("cross entropy:\t\t%.8f\n", ce_crit.total_ce)
+    nerv.printf("correct:\t\t%d\n", ce_crit.total_correct)
+    nerv.printf("frames:\t\t\t%d\n", ce_crit.total_frames)
+    nerv.printf("err/frm:\t\t%.8f\n", ce_crit.total_ce / ce_crit.total_frames)
+    nerv.printf("accuracy:\t\t%.3f%%\n", get_accuracy(sublayer_repo))
     nerv.info("*** training stat end ***")
 end

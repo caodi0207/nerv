@@ -24,5 +24,5 @@ function BiasLayer:propagate(input, output)
 end
 
 function BiasLayer:get_params()
-    return {self.bias}
+    return nerv.ParamRepo({self.bias})
 end

@@ -69,8 +69,8 @@ for i = 0, 3 do
     print(err_output1[1])
     print("err_output2")
     print(err_output2[1])
-    nerv.utils.printf("cross entropy: %.8f\n", sm.total_ce)
-    nerv.utils.printf("frames: %.8f\n", sm.total_frames)
+    nerv.printf("cross entropy: %.8f\n", sm.total_ce)
+    nerv.printf("frames: %.8f\n", sm.total_frames)
 end
 print("linear")
 print(af.ltp.trans)

@@ -15,11 +15,15 @@ function Param:set_info(info)
     self.info = info
 end
 
-function Param:read(pfhandle)
+function Param:read(handle)
     nerv.error_method_not_implemented()
 end
 
-function Param:write(pfhandle)
+function Param:write(handle)
+    nerv.error_method_not_implemented()
+end
+
+function Param:update(gradient)
     nerv.error_method_not_implemented()
 end
 
@@ -29,7 +33,7 @@ function Layer:__init(id, global_conf, layer_conf)
     nerv.error_method_not_implemented()
 end
 
-function Layer:init()
+function Layer:init(batch_size)
     nerv.error_method_not_implemented()
 end
 
@@ -41,7 +45,7 @@ function Layer:propagate(input, output)
     nerv.error_method_not_implemented()
 end
 
-function Layer:back_propagate(next_bp_err, bp_err, input, output)
+function Layer:back_propagate(bp_err, next_bp_err, input, output)
     nerv.error_method_not_implemented()
 end
 

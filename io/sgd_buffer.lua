@@ -41,7 +41,7 @@ function SGDBuffer:saturate()
                 buff.data:copy_from(buff.leftover, 0, lrow)
                 buff.leftover = nil
             end
-            nerv.utils.printf("leftover: %d\n", lrow)
+            nerv.printf("leftover: %d\n", lrow)
             reader.tail = lrow
             reader.has_leftover = false
         end

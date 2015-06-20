@@ -22,10 +22,10 @@ function SigmoidLayer:propagate(input, output)
     output[1]:sigmoid(input[1])
 end
 
-function SigmoidLayer:back_propagate(next_bp_err, bp_err, input, output)
+function SigmoidLayer:back_propagate(bp_err, next_bp_err, input, output)
     next_bp_err[1]:sigmoid_grad(bp_err[1], output[1])
 end
 
 function SigmoidLayer:get_params()
-    return {}
+    return nerv.ParamRepo({})
 end
