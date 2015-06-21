@@ -27,17 +27,18 @@ function nerv.Matrix:__tostring__()
     return table.concat(strt)
 end
 
---func: function
---All entrys in the matrix will be assigned by calling func()
-function nerv.Matrix:randomize(func)
+-- gen: a function takes take indices of the matrix and return the generated
+-- all entrys in the matrix will be assigned by calling gen(i, j)
+function nerv.Matrix:generate(gen)
     if (self:nrow() == 1) then
-        for j = 0, self:ncol() - 1, 1 do
-            self[j] = func()
+        for j = 0, self:ncol() - 1 do
+            self[j] = gen(j)
         end
     else
-        for i = 0, self:nrow() - 1, 1 do
-            for j = 0, self:ncol() - 1, 1 do
-                self[i][j] = func()
+        for i = 0, self:nrow() - 1 do
+            local row = self[i]
+            for j = 0, self:ncol() - 1 do
+                row[j] = gen(i, j)
             end
         end
     end
