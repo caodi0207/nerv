@@ -15,7 +15,7 @@ __nerv.Layer__ is the base class and most of its methods are abstract.
 * __nerv.BiasLayer__ inherits __nerv.Layer__, both `#dim_in` nad `#dim_out` are 1.
 	* `BiasParam bias` The bias parameter.
 * __nerv.SigmoidLayer__ inherits __nerv.Layer__, both `#dim_in` and `#dim_out` are 1.
-* __nerv.SoftmaxCELayer__ inherits __nerv.Layer__, `#dim_in` is 2 and `#dim_out` is 0. `input[1]` is the input to the softmax layer, `input[2]` is the reference distribution.
+* __nerv.SoftmaxCELayer__ inherits __nerv.Layer__, `#dim_in` is 2 and `#dim_out` is -1(optional). `input[1]` is the input to the softmax layer, `input[2]` is the reference distribution. In its `propagate(input, output)` method, if `output[1] ~= nil`, cross\_entropy value will outputed.
 	* `float total_ce` Records the accumlated cross entropy value.
 	* `int total_frams` Records how many frames have passed.  
 	* `bool compressed` The reference distribution can be a one-hot format. This feature is enabled by `layer_conf.compressed`.
@@ -42,6 +42,15 @@ Check whether `#self.dim_in == len_in` and `#self.dim_out == len_out`, if violat
 * __void Layer.get_params(Layer self)__  
 Abstract method.  
 The layer should return a list containing its parameters.
+
+####nerv.Layer.get\_dim(self)####
+*	Returns:
+	`dim_in`: __table__.  
+    `dim_out`: __table__.  
+*	Parameters:  
+	`self`: __nerv.Layer__.
+*	Description:  
+	Returns `self.dim_in, self.dim_out`.
 
 ##Examples##
 * a basic example using __Nerv__ layers to a linear classification.
@@ -141,7 +150,8 @@ print('network input&output&error space allocation...')
 affineI = {dataM} --input to the network is data
 affineO = {nerv.CuMatrixFloat(data_num, 2)}
 softmaxI = {affineO[1], labelM}
-softmaxO = {nerv.CuMatrixFloat(data_num, 2)} 
+softmaxO = {}
+output = nerv.CuMatrixFloat(data_num, 2)
 
 affineE = {nerv.CuMatrixFloat(data_num, 2)}
 --[[space allocation end]]--
@@ -152,9 +162,9 @@ ce_last = 0
 for l = 0, 10, 1 do
     affineL:propagate(affineI, affineO)
     softmaxL:propagate(softmaxI, softmaxO)
-    softmaxO[1]:softmax(softmaxI[1])
+    output:softmax(softmaxI[1])
 
-    softmaxL:back_propagate(affineE, nil, softmaxI, softmaxO)
+    softmaxL:back_propagate(affineE, {}, softmaxI, softmaxO)
     
     affineL:update(affineE, affineI, affineO) 
 
@@ -162,10 +172,9 @@ for l = 0, 10, 1 do
         nerv.utils.printf("training iteration %d finished\n", l)
         nerv.utils.printf("cross entropy: %.8f\n", softmaxL.total_ce - ce_last)
         ce_last = softmaxL.total_ce 
-        nerv.utils.printf("accurate labels: %d\n", calculate_accurate(softmaxO[1], labelM))
+        nerv.utils.printf("accurate labels: %d\n", calculate_accurate(output, labelM))
         nerv.utils.printf("total frames processed: %.8f\n", softmaxL.total_frames)
     end
 end
 --[[end training]]--
-
 ```

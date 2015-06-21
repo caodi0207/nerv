@@ -13,3 +13,5 @@ A registered function, the original function is `luaT_lua_getmetatable`. `tname`
 A registered function, the original function is `luaT_newmetatable`, it returns the metatable of the created class by the name `tname`.
 * __string = nerv.setmetatable(table self, string tname)__  
 A registered function, the original function is `luaT_lua_setmetatable`. It assigns the metatable registered in __luaT__ by the name *tname* to the table *self*. And return *tname* to user.
+* __table = nerv.get_type(string typename)__  
+Returns the type(`loadstring("return " .. typename)`).
