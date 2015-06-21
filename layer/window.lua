@@ -24,5 +24,5 @@ function WindowLayer:propagate(input, output)
 end
 
 function WindowLayer:get_params()
-    return {self.window}
+    return nerv.ParamRepo({self.window})
 end

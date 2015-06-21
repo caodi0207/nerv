@@ -7,9 +7,15 @@ function CombinerLayer:__init(id, global_conf, layer_conf)
     self.dim_out = layer_conf.dim_out
     self.gconf = global_conf
     self:check_dim_len(#self.lambda, -1)
+    if #self.dim_in < 1 then
+        nerv.error("no input specified")
+    end
+    if #self.dim_out < 1 then
+        nerv.error("no output specified")
+    end
 end
 
-function CombinerLayer:init()
+function CombinerLayer:init(batch_size)
     local dim = self.dim_in[1]
     for i = 2, #self.dim_in do
         if self.dim_in[i] ~= dim then
@@ -21,6 +27,7 @@ function CombinerLayer:init()
             nerv.error("mismatching dimensions of inputs/outputs")
         end
     end
+    self.sum = self.gconf.cumat_type(batch_size, dim)
 end
 
 function CombinerLayer:update(bp_err, input, output)
@@ -32,24 +39,21 @@ function CombinerLayer:propagate(input, output)
         output[1]:add(output[1], input[i], 1.0, self.lambda[i])
     end
     for i = 2, #self.dim_out do
-        output[i]:copy_fromd(output[1]) 
+        output[i]:copy_fromd(output[1])
     end
 end
 
-function CombinerLayer:back_propagate(next_bp_err, bp_err, input, output)
-    local sum = bp_err[1]:create()
-    sum:fill(0)
-    for i = 1, #self.dim_out do
+function CombinerLayer:back_propagate(bp_err, next_bp_err, input, output)
+    local sum = self.sum
+    sum:copy_fromd(bp_err[1])
+    for i = 2, #self.dim_out do
         sum:add(sum, bp_err[i], 1.0, 1.0)
     end
     for i = 1, #self.dim_in do
-        local scale = nerv.CuMatrixFloat(sum:nrow(), 1)
-        scale:fill(self.lambda[i])
-        next_bp_err[i]:copy_fromd(sum)
-        next_bp_err[i]:scale_rows_by_col(scale)
+        next_bp_err[i]:add(next_bp_err[i], sum, 0.0, self.lambda[i])
     end
 end
 
 function CombinerLayer:get_params()
-    return {}
+    return nerv.ParamRepo({})
 end

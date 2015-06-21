@@ -8,7 +8,7 @@ function LayerRepo:__init(layer_spec, param_repo, global_conf)
             if layers[id] ~= nil then
                 nerv.error("a layer with id %s already exists", id)
             end
-            nerv.utils.printf("id: %s\n", id)
+            nerv.info("create layer: %s", id)
             if type(spec[2]) ~= "table" then
                 nerv.error("layer config table is need")
             end
@@ -17,7 +17,7 @@ function LayerRepo:__init(layer_spec, param_repo, global_conf)
                 nerv.error("parameter description table is needed")
             end
             for pname, pid in pairs(spec[1]) do
-                layer_config[pname] = param_repo:get_param(pid, global_conf)
+                layer_config[pname] = param_repo:get_param(pid)
             end
             layers[id] = layer_type(id, global_conf, layer_config)
         end
