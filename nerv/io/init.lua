@@ -52,4 +52,4 @@ function DataBuffer:get_batch()
     nerv.error_method_not_implemented()
 end
 
-require 'io.sgd_buffer'
+nerv.include('sgd_buffer.lua')

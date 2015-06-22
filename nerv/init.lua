@@ -108,7 +108,21 @@ function nerv.is_type(obj, tname)
     return false
 end
 
-require 'matrix.init'
-require 'io.init'
-require 'layer.init'
-require 'nn.init'
+function nerv.dirname(filename)
+    if filename:match(".-/.-") then
+        local name = string.gsub(filename, "(.*/)(.*)", "%1")
+        return name
+    else
+        return ''
+    end
+end
+
+function nerv.include(filename)
+    local caller = debug.getinfo(2, "S").source:sub(2)
+    dofile(nerv.dirname(caller) .. filename)
+end
+
+nerv.include('matrix/init.lua')
+nerv.include('io/init.lua')
+nerv.include('layer/init.lua')
+nerv.include('nn/init.lua')

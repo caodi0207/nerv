@@ -70,10 +70,10 @@ function Layer:get_dim()
     return self.dim_in, self.dim_out
 end
 
-require 'layer.affine'
-require 'layer.sigmoid'
-require 'layer.softmax_ce'
-require 'layer.bias'
-require 'layer.window'
-require 'layer.mse'
-require 'layer.combiner'
+nerv.include('affine.lua')
+nerv.include('sigmoid.lua')
+nerv.include('softmax_ce.lua')
+nerv.include('bias.lua')
+nerv.include('window.lua')
+nerv.include('mse.lua')
+nerv.include('combiner.lua')
