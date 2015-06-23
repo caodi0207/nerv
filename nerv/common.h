@@ -3,7 +3,7 @@
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
-#include "luaT/luaT.h"
+#include "lib/luaT/luaT.h"
 #include <stdio.h>
 #include <stdlib.h>
 

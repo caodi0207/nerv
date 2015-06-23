@@ -1,21 +1,19 @@
 package = "nerv"
 version = "scm-1"
 source = {
-    url = "..." -- We don't have one yet
+    url = "https://github.com/Determinant/nerv.git"
 }
 description = {
-    summary = "An example for the LuaRocks tutorial.",
+    summary = "A Lua-based toolkit dedicated to high-performance deep neural network learning",
     detailed = [[
     ]],
-    homepage = "https://github.com/Determinant/nerv", -- We don't have one yet
-    license = "BSD" -- or whatever you like
+    homepage = "https://github.com/Determinant/nerv",
+    license = "BSD"
 }
 dependencies = {
     "lua >= 5.1"
-    -- If you depend on other rocks, add them here
 }
 build = {
-    -- We'll start here.
     type = "make",
     build_variables = {
         CFLAGS="$(CFLAGS)",

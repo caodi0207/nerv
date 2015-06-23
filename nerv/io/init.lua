@@ -3,7 +3,7 @@ function nerv.ChunkFile:write_chunkdata(metadata, writer)
         nerv.error("metadata should be a Lua table")
         return
     end
-    return self:_write_chunkdata(table.tostring(metadata), writer)
+    return self._write_chunkdata(self.handle, table.tostring(metadata), writer)
 end
 
 function nerv.ChunkFile:write_chunk(chunk)
@@ -28,8 +28,12 @@ function nerv.ChunkFile:read_chunk(id, global_conf)
     local chunk_type = nerv.get_type(metadata.type)
     local chunk = chunk_type(id, global_conf)
     chunk:set_info(metadata.info)
-    chunk:read(self:get_chunkdata(id))
+    chunk:read(self._get_chunkdata(self.handle, metadata._chunk_info))
     return chunk
+end
+
+function nerv.ChunkFile:close()
+    self._close(self.handle)
 end
 
 local DataReader = nerv.class("nerv.DataReader")

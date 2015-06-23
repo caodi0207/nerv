@@ -51,11 +51,11 @@ static void host_matrix_(init)(lua_State *L) {
 #include "matrix.c"
 
 int nerv_matrix_(load)(lua_State *L) {
-    ChunkData *chunk = luaT_checkudata(L, 1, nerv_chunk_data_tname);
+    ChunkData *cdp = luaT_checkudata(L, 1, nerv_chunk_data_tname);
     Matrix *self;
     int i, j;
     long nrow, ncol;
-    FILE *fp = chunk->fp;
+    FILE *fp = cdp->fp;
     if (fscanf(fp, "%ld %ld", &nrow, &ncol) != 2)
         return 0;
     self = nerv_matrix_(new_)(L, nrow, ncol);
@@ -74,12 +74,12 @@ int nerv_matrix_(load)(lua_State *L) {
 }
 
 int nerv_matrix_(save)(lua_State *L) {
-    ChunkFileHandle *chunk = luaT_checkudata(L, 2,
-                                nerv_chunk_file_handle_tname);
+    ChunkFile *cfp = luaT_checkudata(L, 2,
+                            nerv_chunk_file_handle_tname);
     Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
     int i, j;
     long nrow = self->nrow, ncol = self->ncol;
-    FILE *fp = chunk->fp;
+    FILE *fp = cfp->fp;
     if (fprintf(fp, "%ld %ld\n", nrow, ncol) < 0)
         return 0;
     for (i = 0; i < nrow; i++)

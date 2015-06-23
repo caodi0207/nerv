@@ -1,7 +1,7 @@
 .PHONY: build install clean
 SHELL := /bin/bash
 BUILD_DIR := $(CURDIR)/build
-OBJS := nerv.o luaT.o common.o \
+OBJS := nerv.o lib/luaT/luaT.o lib/io/chunk_file.o common.o \
 		matrix/mmatrix.o matrix/cumatrix.o matrix/init.o matrix/cukernel.o \
 		io/init.o io/chunk_file.o \
 		examples/oop_example.o
@@ -19,7 +19,7 @@ INCLUDE += $(CUDA_INCLUDE)
 LDFLAGS := -L$(CUDA_BASE)/lib64/  -Wl,-rpath=$(CUDA_BASE)/lib64/ -lcudart -lcublas
 CFLAGS := -Wall -Wextra -O2
 OBJ_DIR := $(BUILD_DIR)/objs
-SUBDIR := matrix io layer examples nn
+SUBDIR := matrix io layer examples nn lib/io lib/luaT
 NVCC := $(CUDA_BASE)/bin/nvcc
 NVCC_FLAGS := -Xcompiler -fPIC,-Wall,-Wextra
 
@@ -39,8 +39,8 @@ $(OBJ_DIR)/matrix/cukernel.o: matrix/cukernel.cu
 	$(NVCC) -c -o $@ $< $(INCLUDE) $(NVCC_FLAGS)
 $(LUA_DIR)/%.lua: %.lua
 	cp $< $@
-$(OBJ_DIR)/luaT.o:
-	gcc -c -o $@ luaT/luaT.c $(INCLUDE) -fPIC
+#$(OBJ_DIR)/luaT.o:
+#	gcc -c -o $@ luaT/luaT.c $(INCLUDE) -fPIC
 $(LIBS): $(OBJS)
 	gcc -shared -o $@ $(OBJS) $(LDFLAGS)
 
