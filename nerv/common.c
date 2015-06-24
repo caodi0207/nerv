@@ -11,6 +11,31 @@ int nerv_error(lua_State *L, const char *err_mesg_fmt, ...) {
     return 0;
 }
 
+int nerv_error_status(lua_State *L, Status *status) {
+    const char *mmesg = NULL;
+    switch (status->err_code)
+    {
+        case MAT_GENERAL_ERR: mmesg = "general error"; break;
+        case MAT_INSUF_MEM: mmesg = "insufficient memory"; break;
+        case MAT_INVALID_FORMAT: mmesg = "invalid matrix format"; break;
+        case MAT_WRITE_ERROR: mmesg = "error while writing matrix"; break;
+        case MAT_INVALID_COPY_INTERVAL: mmesg = "invalid copy interval"; break;
+        case MAT_MISMATCH_DIM: mmesg = "mismatching matrix dimension"; break;
+        case MAT_WRONG_MULT_DIM: mmesg = "wrong multipier dimension"; break;
+        case MAT_ROW_VECTOR_EXP: mmesg = "row vector expected"; break;
+        case MAT_COL_VECTOR_EXP: mmesg = "column vector expected"; break;
+        case MAT_IDX_VECTOR_EXP: mmesg = "index vector expected"; break;
+        case MAT_INVALID_IDX: mmesg = "invalid index"; break;
+        case MAT_CUDA_ERR: mmesg = "cuda error"; break;
+        case MAT_CUBLAS_ERR: mmesg = "cublas error"; break;
+    }
+    if (status->msg)
+        nerv_error(L, "%s: %s @%s:%d", mmesg, status->msg,
+                                        status->file, status->lineno);
+    else
+        nerv_error(L, "%s @%s:%d", mmesg, status->file, status->lineno);
+}
+
 int nerv_error_method_not_implemented(lua_State *L) {
     return nerv_error(L, "method not implemented"); 
 }

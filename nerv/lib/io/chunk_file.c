@@ -91,6 +91,7 @@ static ChunkFile *open_write(const char *fn, int *status) {
     }
     cfp = (ChunkFile *)malloc(sizeof(ChunkFile));
     cfp->fp = fp;
+    cfp->info = NULL;
     cfp->status = CF_WRITE;
     *status = CF_NORMAL;
     return cfp;
@@ -111,8 +112,6 @@ static ChunkFile *open_read(const char *fn, int *status) {
         return NULL;
     }
     cfp = (ChunkFile *)malloc(sizeof(ChunkFile));
-    cfp->fp = fp;
-    cfp->status = CF_READ;
     offset = ftello(fp);
     /* fprintf(stderr, "%d\n", (int)offset); */
     for (i = 0;; offset += chunk_len, i++)
@@ -144,7 +143,9 @@ static ChunkFile *open_read(const char *fn, int *status) {
         head = cip;
     }
     *status = CF_NORMAL;
+    cfp->fp = fp;
     cfp->info = head;
+    cfp->status = CF_READ;
     return cfp;
 }
 
@@ -208,13 +209,16 @@ void nerv_chunk_file_close(ChunkFile *cfp) {
 
 void nerv_chunk_file_destroy(ChunkFile *cfp) {
     ChunkInfo *i, *ni;
-    if (cfp->status != CF_CLOSED) fclose(cfp->fp);
-    for (i = cfp->info; i; i = ni)
+    if (cfp->info)
     {
-        ni = i->next;
-        free(i->metadata);
-        free(i);
+        for (i = cfp->info; i; i = ni)
+        {
+            ni = i->next;
+            free(i->metadata);
+            free(i);
+        }
     }
+    if (cfp->status != CF_CLOSED) fclose(cfp->fp);
     free(cfp);
 }
 

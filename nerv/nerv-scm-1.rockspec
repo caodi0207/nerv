@@ -24,6 +24,7 @@ build = {
         LUA="$(LUA)",
     },
     install_variables = {
+        LUA_BINDIR="$(LUA_BINDIR)",
         INST_PREFIX="$(PREFIX)",
         INST_BINDIR="$(BINDIR)",
         INST_LIBDIR="$(LIBDIR)",

@@ -1,15 +1,15 @@
 #define NERV_GENERIC_MMATRIX
 #include <stdlib.h>
 #include "../common.h"
-void nerv_matrix_host_float_init(lua_State *L);
-void nerv_matrix_host_double_init(lua_State *L);
-void nerv_matrix_host_int_init(lua_State *L);
+void nerv_matrix_host_float_lua_init(lua_State *L);
+void nerv_matrix_host_double_lua_init(lua_State *L);
+void nerv_matrix_host_int_lua_init(lua_State *L);
 
-void nerv_mmatrix_init(lua_State *L) {
+void nerv_lua_mmatrix_init(lua_State *L) {
     srand(1);
-    nerv_matrix_host_float_init(L);
-    nerv_matrix_host_double_init(L);
-    nerv_matrix_host_int_init(L);
+    nerv_matrix_host_float_lua_init(L);
+    nerv_matrix_host_double_lua_init(L);
+    nerv_matrix_host_int_lua_init(L);
 }
 
 #define MATRIX_USE_FLOAT
@@ -52,26 +52,18 @@ static void host_matrix_(init_extra)(lua_State *L) {
 }
 
 #include "generic/mmatrix.c"
+#include "../lib/matrix/mmatrix.h"
 
-static int nerv_matrix_(perm_gen)(lua_State *L) {
+static int nerv_matrix_(lua_perm_gen)(lua_State *L) {
+    Status status;
     int i, ncol = luaL_checkinteger(L, 1);
-    Matrix *self = nerv_matrix_(new_)(L, 1, ncol);
-    long *prow = self->data.i;
-    for (i = 0; i < ncol; i++)
-        prow[i] = i;
-    for (i = ncol - 1; i >= 0; i--)
-    {
-        size_t j = rand() % (i + 1);
-        long tmp = prow[i];
-        prow[i] = prow[j];
-        prow[j] = tmp;
-    }
+    Matrix *self = nerv_matrix_(perm_gen)(ncol, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, self, nerv_matrix_(tname));
     return 1;
 }
 
 static const luaL_Reg nerv_matrix_(extra_methods_int)[] = {
-    {"perm_gen", nerv_matrix_(perm_gen)},
+    {"perm_gen", nerv_matrix_(lua_perm_gen)},
     {NULL, NULL}
 };
-

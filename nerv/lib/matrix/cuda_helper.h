@@ -4,33 +4,68 @@
 #include "cuda_runtime.h"
 #include "driver_types.h"
 #include "cublas_v2.h"
-#define CUBLAS_SAFE_SYNC_CALL(call) \
+
+#define CUBLAS_SAFE_SYNC_CALL_RET(call, status) \
     do { \
         cublasStatus_t  err = (call); \
         if (err != CUBLAS_STATUS_SUCCESS) \
-            nerv_error(L, "cumatrix cublas error: %s at %s:%d", \
-                        cublasGetErrorString(err), __FILE__, __LINE__); \
+        { \
+            NERV_SET_STATUS(status, MAT_CUBLAS_ERR, cublasGetErrorString(err)); \
+            return 0; \
+        } \
         cudaDeviceSynchronize(); \
     } while (0)
 
-#define CUDA_SAFE_CALL(call) \
+#define CUBLAS_SAFE_SYNC_CALL(call, status) \
+    do { \
+        cublasStatus_t  err = (call); \
+        if (err != CUBLAS_STATUS_SUCCESS) \
+            NERV_EXIT_STATUS(status, MAT_CUBLAS_ERR, cublasGetErrorString(err)); \
+        cudaDeviceSynchronize(); \
+    } while (0)
+
+#define CUDA_SAFE_CALL_RET(call, status) \
     do { \
         cudaError_t err = (call); \
         if (err != cudaSuccess) \
-            nerv_error(L, "cumatrix CUDA error: %s at %s:%d", \
-                            cudaGetErrorString(err), __FILE__, __LINE__); \
+        { \
+            NERV_SET_STATUS(status, MAT_CUDA_ERR, cudaGetErrorString(err)); \
+            return 0; \
+        } \
     } while (0)
 
-#define CUDA_SAFE_SYNC_CALL(call) \
+#define CUDA_SAFE_CALL(call, status) \
     do { \
-        CUDA_SAFE_CALL(call); \
+        cudaError_t err = (call); \
+        if (err != cudaSuccess) \
+            NERV_EXIT_STATUS(status, MAT_CUDA_ERR, cudaGetErrorString(err)); \
+    } while (0)
+
+#define CUDA_SAFE_SYNC_CALL(call, status) \
+    do { \
+        CUDA_SAFE_CALL(call, status); \
         cudaDeviceSynchronize(); \
     } while (0)
 
-#define CHECK_SAME_DIMENSION(a, b) \
+#define CUDA_SAFE_SYNC_CALL_RET(call, status) \
+    do { \
+        CUDA_SAFE_CALL_RET(call, status); \
+        cudaDeviceSynchronize(); \
+    } while (0)
+
+#define CHECK_SAME_DIMENSION(a, b, status) \
     do { \
         if (!(a->nrow == b->nrow && a->ncol == b->ncol)) \
-            nerv_error(L, "matrices should be of the same dimension"); \
+            NERV_EXIT_STATUS(status, MAT_MISMATCH_DIM, 0); \
+    } while (0)
+
+#define CHECK_SAME_DIMENSION_RET(a, b, status) \
+    do { \
+        if (!(a->nrow == b->nrow && a->ncol == b->ncol)) \
+        { \
+            NERV_SET_STATUS(status, MAT_MISMATCH_DIM, 0); \
+            return 0; \
+        } \
     } while (0)
 
 static const char *cublasGetErrorString(cublasStatus_t err) {

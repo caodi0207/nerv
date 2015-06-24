@@ -1,12 +1,11 @@
 #include "../common.h"
-#include "generic/matrix.h"
 
 const char *nerv_matrix_tname = "nerv.Matrix";
 const char *nerv_matrix_cuda_tname = "nerv.CuMatrix";
 const char *nerv_matrix_host_tname = "nerv.MMatrix";
 
-void nerv_cumatrix_init(lua_State *L);
-void nerv_mmatrix_init(lua_State *L);
+void nerv_lua_cumatrix_init(lua_State *L);
+void nerv_lua_mmatrix_init(lua_State *L);
 
 static const luaL_Reg matrix_methods[] = {
     {"__tostring__", nerv_error_method_not_implemented },
@@ -25,11 +24,11 @@ void nerv_matrix_init(lua_State *L) {
     /* CuMatrix inherits from Matrix */
     luaT_newmetatable(L, nerv_matrix_cuda_tname, nerv_matrix_tname,
                             NULL, NULL, NULL);
-    nerv_cumatrix_init(L);
+    nerv_lua_cumatrix_init(L);
     lua_pop(L, 1);
     /* MMatrix inherits from Matrix */
     luaT_newmetatable(L, nerv_matrix_host_tname, nerv_matrix_tname,
                             NULL, NULL, NULL);
-    nerv_mmatrix_init(L);
+    nerv_lua_mmatrix_init(L);
     lua_pop(L, 1);
 }

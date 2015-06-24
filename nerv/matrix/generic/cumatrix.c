@@ -1,10 +1,6 @@
 #ifdef NERV_GENERIC_CUMATRIX
-#include "matrix.h"
+#include "../../lib/matrix/generic/matrix.h"
 #include "elem_type.h"
-
-#define MATRIX_DATA_FREE(L, ptr) cuda_matrix_(free)(L, ptr)
-#define MATRIX_DATA_ALLOC(L, dptr, stride, width, height) \
-                            cuda_matrix_(alloc)(L, dptr, stride, width, height)
 #define MATRIX_DATA_WRITE(L, data, idx, val) cuda_matrix_(write)(L, data, idx, val)
 #define MATRIX_DATA_READ(L, data, idx) cuda_matrix_(read)(L, data, idx)
 #define MATRIX_INIT(L) cuda_matrix_(init)(L)
@@ -12,443 +8,303 @@
 #define NERV_GENERIC_MATRIX
 #define NERV_GENERIC_CUKERNEL
 #include "../../common.h"
-#include "../cukernel.h"
-#include "../cuda_helper.h"
+#include "../../lib/matrix/generic/cumatrix.h"
 
-Matrix *nerv_matrix_(new_)(lua_State *L, long nrow, long ncol);
-void nerv_matrix_(data_free)(lua_State *L, Matrix *self);
-
-static void nerv_matrix_(add_)(lua_State *L, const Matrix *a, const Matrix *b,
-                                const Matrix *c,
-                                MATRIX_ELEM alpha, MATRIX_ELEM beta) {
-    PROFILE_START
-    CUBLAS_SAFE_SYNC_CALL(
-            NERV_CUBLAS_(geam)(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N,
-                a->ncol, a->nrow,
-                &alpha,
-                MATRIX_ELEM_PTR(a), a->stride / sizeof(MATRIX_ELEM),
-                &beta,
-                MATRIX_ELEM_PTR(b), b->stride / sizeof(MATRIX_ELEM),
-                MATRIX_ELEM_PTR(c), c->stride / sizeof(MATRIX_ELEM)));
-    PROFILE_STOP
-}
-
-static int nerv_matrix_(add)(lua_State *L) {
+static int nerv_matrix_(lua_add)(lua_State *L) {
+    Status status;
     Matrix *c = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 3, nerv_matrix_(tname));
+    const Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    const Matrix *b = luaT_checkudata(L, 3, nerv_matrix_(tname));
     MATRIX_ELEM alpha = luaL_checknumber(L, 4);
     MATRIX_ELEM beta = luaL_checknumber(L, 5);
-    CHECK_SAME_DIMENSION(a, b);
-    CHECK_SAME_DIMENSION(a, c);
-    nerv_matrix_(add_)(L, a, b, c, alpha, beta);
+    nerv_matrix_(add)(c, a, b, alpha, beta, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(get_cublas_op)(char ch) {
+static int nerv_matrix_(lua_get_cublas_op)(char ch) {
     return (ch == 'T' || ch == 't') ? CUBLAS_OP_T : CUBLAS_OP_N;
 }
 
-static int nerv_matrix_(mul)(lua_State *L) {
-#define SWAP(a, b) \
-    do { int t = (a); (a) = (b); (b) = t; } while (0)
-
+static int nerv_matrix_(lua_mul)(lua_State *L) {
+    Status status;
     Matrix *c = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 3, nerv_matrix_(tname));
     MATRIX_ELEM alpha = luaL_checknumber(L, 4);
     MATRIX_ELEM beta = luaL_checknumber(L, 5);
     int nargs = lua_gettop(L);
-    int ta = nargs > 5 ? nerv_matrix_(get_cublas_op)(*luaL_checkstring(L, 6)) \
+    int ta = nargs > 5 ? nerv_matrix_(lua_get_cublas_op)(*luaL_checkstring(L, 6)) \
                             : CUBLAS_OP_N;
-    int tb = nargs > 6 ? nerv_matrix_(get_cublas_op)(*luaL_checkstring(L, 7)) \
+    int tb = nargs > 6 ? nerv_matrix_(lua_get_cublas_op)(*luaL_checkstring(L, 7)) \
                             : CUBLAS_OP_N;
-    int am = a->nrow, an = a->ncol;
-    int bm = b->nrow, bn = b->ncol;
-    if (ta == CUBLAS_OP_T) SWAP(am, an);
-    if (tb == CUBLAS_OP_T) SWAP(bm, bn);
-    if (an != bm)
-        nerv_error(L, "Wrong dimension of multipliers");
-/*    MATRIX_ELEM alpha = 1.0f, beta = 0.0f; */
-    /* Because matrix in Nerv is row-major, here b comes first */
-    PROFILE_START
-    CUBLAS_SAFE_SYNC_CALL(
-            NERV_CUBLAS_(gemm)(cublas_handle, tb, ta,
-                bn, am, bm,
-                &alpha,
-                MATRIX_ELEM_PTR(b), b->stride / sizeof(MATRIX_ELEM),
-                MATRIX_ELEM_PTR(a), a->stride / sizeof(MATRIX_ELEM),
-                &beta,
-                MATRIX_ELEM_PTR(c), c->stride / sizeof(MATRIX_ELEM)));
-    PROFILE_STOP
+    nerv_matrix_(mul)(c, a, b, alpha, beta, ta, tb, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(create)(lua_State *L) {
+static int nerv_matrix_(lua_create)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(L, a->nrow, a->ncol);
+    Matrix *b = nerv_matrix_(create)(a->nrow, a->ncol, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(sigmoid)(lua_State *L) {
+static int nerv_matrix_(lua_sigmoid)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    CHECK_SAME_DIMENSION(a, b);
-    PROFILE_START
-    cudak_(cuda_sigmoid)(b, a);
-    PROFILE_STOP
+    nerv_matrix_(sigmoid)(a, b, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(sigmoid_grad)(lua_State *L) {
+static int nerv_matrix_(lua_sigmoid_grad)(lua_State *L) {
+    Status status;
     Matrix *nerr = luaT_checkudata(L, 1, nerv_matrix_(tname));
     Matrix *err = luaT_checkudata(L, 2, nerv_matrix_(tname));
     Matrix *output = luaT_checkudata(L, 3, nerv_matrix_(tname));
-    CHECK_SAME_DIMENSION(nerr, err);
-    CHECK_SAME_DIMENSION(nerr, output);
-    PROFILE_START
-    cudak_(cuda_sigmoid_grad)(output, err, nerr);
-    PROFILE_STOP
+    nerv_matrix_(sigmoid_grad)(nerr, err, output, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(softmax)(lua_State *L) {
+static int nerv_matrix_(lua_softmax)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *max, *max_idx;
-    Matrix *dno;
-    CHECK_SAME_DIMENSION(a, b);
-    max = nerv_matrix_(new_)(L, a->nrow, 1);
-    max_idx = nerv_matrix_(new_)(L, a->nrow, 1);
-    dno = nerv_matrix_(new_)(L, a->nrow, 1);
-    PROFILE_START
-    cudak_(cuda_rowmax_idx)(a, max, max_idx);
-    cudak_(cuda_softmax_denominator)(a, max, dno);
-    cudak_(cuda_softmax_final)(a, max, dno, b);
-    PROFILE_STOP
-    nerv_matrix_(data_free)(L, max);
-    nerv_matrix_(data_free)(L, dno);
+    Matrix *max_idx = nerv_matrix_(softmax)(b, a, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, max_idx, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(rowsum)(lua_State *L) {
+static int nerv_matrix_(lua_rowsum)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(L, a->nrow, 1);
-    PROFILE_START
-    cudak_(cuda_rowsum)(a, b);
-    PROFILE_STOP
+    Matrix *b = nerv_matrix_(rowsum)(a, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(colsum)(lua_State *L) {
+static int nerv_matrix_(lua_colsum)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(L, 1, a->ncol);
-    PROFILE_START
-    cudak_(cuda_colsum)(a, b);
-    PROFILE_STOP
+    Matrix *b = nerv_matrix_(colsum)(a, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(colsame)(lua_State *L) {
+static int nerv_matrix_(lua_colsame)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *ref = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(L, 1, a->ncol);
-    CHECK_SAME_DIMENSION(a, ref);
-    PROFILE_START
-    cudak_(cuda_colsame)(a, ref, b);
-    PROFILE_STOP
+    const Matrix *ref = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    Matrix *b = nerv_matrix_(colsame)(a, ref, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(rowmax)(lua_State *L) {
+static int nerv_matrix_(lua_rowmax)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(L, a->nrow, 1);
-    PROFILE_START
-    cudak_(cuda_rowmax)(a, b);
-    PROFILE_STOP
+    Matrix *b = nerv_matrix_(rowmax)(a, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(rowmax_idx)(lua_State *L) {
+static int nerv_matrix_(lua_rowmax_idx)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(L, a->nrow, 1);
-    Matrix *idx = nerv_matrix_(new_)(L, a->nrow, 1);
-    PROFILE_START
-    cudak_(cuda_rowmax_idx)(a, b, idx);
-    PROFILE_STOP
+    Matrix *b;
+    Matrix *idx;
+    nerv_matrix_(rowmax_idx)(a, &b, &idx, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     luaT_pushudata(L, idx, nerv_matrix_(tname));
     return 2;
 }
 
-static int nerv_matrix_(add_row)(lua_State *L) {
-    Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
+static int nerv_matrix_(lua_add_row)(lua_State *L) {
+    Status status;
+    const Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 1, nerv_matrix_(tname));
     double beta = luaL_checknumber(L, 3);
-    if (a->ncol != b->ncol)
-        nerv_error(L, "the number of columns is not the same");
-    if (a->nrow != 1)
-        nerv_error(L, "a row vector is expected");
-    PROFILE_START
-    cudak_(cuda_add_row)(a, b, beta);
-    PROFILE_STOP
+    nerv_matrix_(add_row)(b, a, beta, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(fill)(lua_State *L) {
+static int nerv_matrix_(lua_fill)(lua_State *L) {
+    Status status;
     Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
     double val = luaL_checknumber(L, 2);
-    PROFILE_START
-    cudak_(cuda_fill)(self, val);
-    PROFILE_STOP
+    nerv_matrix_(fill)(self, val, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(copy_fromd)(lua_State *L) {
+static int nerv_matrix_(lua_copy_fromd)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    const Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
     int nargs = lua_gettop(L);
     int b_begin = nargs > 2 ? luaL_checkinteger(L, 3) : 0;
     int b_end = nargs > 3 ? luaL_checkinteger(L, 4) : b->nrow;
     int a_begin = nargs > 4 ? luaL_checkinteger(L, 5) : 0;
-    if (!(0 <= b_begin && b_begin < b_end && b_end <= b->nrow &&
-            a_begin + b_end - b_begin <= a->nrow))
-        nerv_error(L, "invalid copy interval");
-    if (a->ncol != b->ncol)
-        nerv_error(L, "matrices should be of the same dimension");
-    PROFILE_START
-    CUDA_SAFE_SYNC_CALL(
-            cudaMemcpy2D(MATRIX_ROW_PTR(a, a_begin), a->stride,
-                MATRIX_ROW_PTR(b, b_begin), b->stride,
-                sizeof(MATRIX_ELEM) * b->ncol, b_end - b_begin,
-                cudaMemcpyDeviceToDevice));
-    PROFILE_STOP
+    nerv_matrix_(copy_fromd)(a, b, a_begin, b_begin, b_end, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
 extern const char *MATRIX_CUMATRIX_HOST_TNAME;
-static int nerv_matrix_(copy_fromh)(lua_State *L) { 
+static int nerv_matrix_(lua_copy_fromh)(lua_State *L) { 
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
+    const Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
     int nargs = lua_gettop(L);
     int b_begin = nargs > 2 ? luaL_checkinteger(L, 3) : 0;
     int b_end = nargs > 3 ? luaL_checkinteger(L, 4) : b->nrow;
     int a_begin = nargs > 4 ? luaL_checkinteger(L, 5) : 0;
-    if (!(0 <= b_begin && b_begin < b_end && b_end <= b->nrow &&
-            a_begin + b_end - b_begin <= a->nrow))
-        nerv_error(L, "invalid copy interval");
-    if (a->ncol != b->ncol)
-        nerv_error(L, "matrices should be of the same dimension");
-    PROFILE_START
-    CUDA_SAFE_SYNC_CALL(
-            cudaMemcpy2D(MATRIX_ROW_PTR(a, a_begin), a->stride,
-                MATRIX_ROW_PTR(b, b_begin), b->stride,
-                sizeof(MATRIX_ELEM) * b->ncol, b_end - b_begin,
-                cudaMemcpyHostToDevice));
-    PROFILE_STOP
+    nerv_matrix_(copy_fromh)(a, b, a_begin, b_begin, b_end, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(copy_toh)(lua_State *L) {
+static int nerv_matrix_(lua_copy_toh)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
+    const Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
     int nargs = lua_gettop(L);
     int a_begin = nargs > 2 ? luaL_checkinteger(L, 3) : 0;
     int a_end = nargs > 3 ? luaL_checkinteger(L, 4) : a->nrow;
     int b_begin = nargs > 4 ? luaL_checkinteger(L, 5) : 0;
-    if (!(0 <= a_begin && a_begin < a_end && a_end <= a->nrow &&
-            b_begin + a_end - a_begin <= b->nrow))
-        nerv_error(L, "invalid copy interval");
-    if (b->ncol != a->ncol)
-        nerv_error(L, "matrices should be of the same dimension");
-    PROFILE_START
-    CUDA_SAFE_SYNC_CALL(
-            cudaMemcpy2D(MATRIX_ROW_PTR(b, b_begin), b->stride,
-                MATRIX_ROW_PTR(a, a_begin), a->stride,
-                sizeof(MATRIX_ELEM) * a->ncol, a_end - a_begin,
-                cudaMemcpyDeviceToHost));
-    PROFILE_STOP
+    nerv_matrix_(copy_toh)(a, b, a_begin, a_end, b_begin, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(trans)(lua_State *L) {
+static int nerv_matrix_(lua_trans)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = nerv_matrix_(new_)(L, a->ncol, a->nrow);
-    MATRIX_ELEM alpha = 1, beta = 0;
-    /* FIXME: possible memory leak when lua error is raised */
-    PROFILE_START
-    CUBLAS_SAFE_SYNC_CALL(
-            NERV_CUBLAS_(geam)(cublas_handle, CUBLAS_OP_T, CUBLAS_OP_T,
-                a->nrow, a->ncol,
-                &alpha,
-                MATRIX_ELEM_PTR(a), a->stride / sizeof(MATRIX_ELEM),
-                &beta,
-                MATRIX_ELEM_PTR(a), a->stride / sizeof(MATRIX_ELEM),
-                MATRIX_ELEM_PTR(b), b->stride / sizeof(MATRIX_ELEM)));
-    PROFILE_STOP
+    Matrix *b = nerv_matrix_(trans)(a, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
-static int nerv_matrix_(mul_elem)(lua_State *L) {
-    Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 3, nerv_matrix_(tname));
+static int nerv_matrix_(lua_mul_elem)(lua_State *L) {
+    Status status;
+    const Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    const Matrix *b = luaT_checkudata(L, 3, nerv_matrix_(tname));
     Matrix *c = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    CHECK_SAME_DIMENSION(a, b);
-    CHECK_SAME_DIMENSION(a, c);
-    PROFILE_START
-    cudak_(cuda_mul_elem)(a, b, c);
-    PROFILE_STOP
+    nerv_matrix_(mul_elem)(c, a, b, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(log_elem)(lua_State *L) {
-    Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
+static int nerv_matrix_(lua_log_elem)(lua_State *L) {
+    Status status;
+    const Matrix *a = luaT_checkudata(L, 2, nerv_matrix_(tname));
     Matrix *b = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    CHECK_SAME_DIMENSION(a, b);
-    PROFILE_START
-    cudak_(cuda_log_elem)(a, b);
-    PROFILE_STOP
+    nerv_matrix_(log_elem)(b, a, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(decompress)(lua_State *L) {
-    Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b;
+static int nerv_matrix_(lua_decompress)(lua_State *L) {
+    Status status;
+    const Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
     int orig_col = luaL_checkinteger(L, 2);
-    if (a->ncol != 1)
-        nerv_error(L, "the compressed matrix must be a column vector");
-    b = nerv_matrix_(new_)(L, a->nrow, orig_col);
-    PROFILE_START
-    cudak_(cuda_fill)(b, 0.0);
-    cudak_(cuda_decompress)(a, b);
-    PROFILE_STOP
+    Matrix *b = nerv_matrix_(decompress)(a, orig_col, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, b, nerv_matrix_(tname));
     return 1;
 }
 
 extern const char *nerv_matrix_host_int_tname;
-static int nerv_matrix_(copy_rows_fromh_by_idx)(lua_State *L) {
+static int nerv_matrix_(lua_copy_rows_fromh_by_idx)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
-    Matrix *idx = luaT_checkudata(L, 3, nerv_matrix_host_int_tname);
+    const Matrix *b = luaT_checkudata(L, 2, MATRIX_CUMATRIX_HOST_TNAME);
+    const Matrix *idx = luaT_checkudata(L, 3, nerv_matrix_host_int_tname);
     long nrow = a->nrow;
     int b_begin = lua_gettop(L) > 3 ? luaL_checkinteger(L, 4) : 0;
-    if (!(0 <= b_begin && b_begin + nrow <= idx->ncol))
-        nerv_error(L, "invalid copy interval");
-    long *idx_ptr = idx->data.i;
-    int i;
-    if (idx->nrow != 1)
-        nerv_error(L, "index should be a vector");
-    if (a->ncol != b->ncol)
-        nerv_error(L, "source/destination dimension mismatch");
-    cudaStream_t *streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * nrow);
-    for (i = 0; i < nrow; i++)
-    {
-        int src_row = idx_ptr[b_begin + i];
-        if (!(0 <= src_row && src_row < b->nrow))
-            nerv_error(L, "invalid index");
-        CUDA_SAFE_CALL(cudaStreamCreate(streams + i));
-        CUDA_SAFE_CALL(cudaMemcpyAsync(MATRIX_ROW_PTR(a, i),
-                    MATRIX_ROW_PTR(b, src_row),
-                    b->stride,
-                    cudaMemcpyHostToDevice, streams[i]));
-    }
-    for (i = 0; i < nrow; i++)
-    {
-        CUDA_SAFE_CALL(cudaStreamSynchronize(streams[i]));
-        CUDA_SAFE_CALL(cudaStreamDestroy(streams[i]));
-    }
-    free(streams);
+    nerv_matrix_(copy_rows_fromh_by_idx)(a, b, idx, b_begin, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(expand_frm)(lua_State *L) {
+static int nerv_matrix_(lua_expand_frm)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    const Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
     int context = luaL_checkinteger(L, 3);
-    if (a->nrow != b->nrow)
-        nerv_error(L, "mismatching number of frames");
-    if (a->ncol != b->ncol * (context * 2 + 1))
-        nerv_error(L, "the width should be 2 * context + 1");
-    PROFILE_START
-    cudak_(cuda_expand_frm)(b, a, context);
-    PROFILE_STOP
+    nerv_matrix_(expand_frm)(a, b, context, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(rearrange_frm)(lua_State *L) {
+static int nerv_matrix_(lua_rearrange_frm)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    const Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
     int step = luaL_checkinteger(L, 3);
-    CHECK_SAME_DIMENSION(a, b);
-    if (b->ncol % step)
-        nerv_error(L, "the dimension of columns is not divisible by step");
-    PROFILE_START
-    cudak_(cuda_rearrange_frm)(b, a, step);
-    PROFILE_STOP
+    nerv_matrix_(rearrange_frm)(a, b, step, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(scale_rows_by_col)(lua_State *L) {
+static int nerv_matrix_(lua_scale_rows_by_col)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    if (a->nrow != b->nrow)
-        nerv_error(L, "the number of rows is not the same");
-    if (b->ncol != 1)
-        nerv_error(L, "a column vector is expected");
-    PROFILE_START
-    cudak_(cuda_scale_rows_by_col)(b, a);
-    PROFILE_STOP
+    const Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    nerv_matrix_(scale_rows_by_col)(a, b, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
-static int nerv_matrix_(scale_rows_by_row)(lua_State *L) {
+static int nerv_matrix_(lua_scale_rows_by_row)(lua_State *L) {
+    Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
-    Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
-    if (a->ncol != b->ncol)
-        nerv_error(L, "the number of columns is not the same");
-    if (b->nrow != 1)
-        nerv_error(L, "a row vector is expected");
-    PROFILE_START
-    cudak_(cuda_scale_rows_by_row)(b, a);
-    PROFILE_STOP
+    const Matrix *b = luaT_checkudata(L, 2, nerv_matrix_(tname));
+    nerv_matrix_(scale_rows_by_row)(a, b, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
 static const luaL_Reg nerv_matrix_(extra_methods)[] = {
-    {"create", nerv_matrix_(create)},
-    {"colsum", nerv_matrix_(colsum)},
-    {"colsame", nerv_matrix_(colsame)},
-    {"rowsum", nerv_matrix_(rowsum)},
-    {"rowmax", nerv_matrix_(rowmax)},
-    {"rowmax_idx", nerv_matrix_(rowmax_idx)},
-    {"trans", nerv_matrix_(trans)},
-    {"decompress", nerv_matrix_(decompress)},
+    {"create", nerv_matrix_(lua_create)},
+    {"colsum", nerv_matrix_(lua_colsum)},
+    {"colsame", nerv_matrix_(lua_colsame)},
+    {"rowsum", nerv_matrix_(lua_rowsum)},
+    {"rowmax", nerv_matrix_(lua_rowmax)},
+    {"rowmax_idx", nerv_matrix_(lua_rowmax_idx)},
+    {"trans", nerv_matrix_(lua_trans)},
+    {"decompress", nerv_matrix_(lua_decompress)},
     /* in-place calc */
-    {"copy_fromh", nerv_matrix_(copy_fromh)},
-    {"copy_fromd", nerv_matrix_(copy_fromd)},
-    {"copy_toh", nerv_matrix_(copy_toh)},
-    {"add", nerv_matrix_(add)},
-    {"mul", nerv_matrix_(mul)},
-    {"add_row", nerv_matrix_(add_row)},
-    {"fill", nerv_matrix_(fill)},
-    {"sigmoid", nerv_matrix_(sigmoid)},
-    {"sigmoid_grad", nerv_matrix_(sigmoid_grad)},
-    {"softmax", nerv_matrix_(softmax)},
-    {"mul_elem", nerv_matrix_(mul_elem)},
-    {"log_elem", nerv_matrix_(log_elem)},
-    {"copy_rows_fromh_by_idx", nerv_matrix_(copy_rows_fromh_by_idx)},
-    {"expand_frm", nerv_matrix_(expand_frm)},
-    {"rearrange_frm", nerv_matrix_(rearrange_frm)},
-    {"scale_rows_by_row", nerv_matrix_(scale_rows_by_row)},
-    {"scale_rows_by_col", nerv_matrix_(scale_rows_by_col)},
+    {"copy_fromh", nerv_matrix_(lua_copy_fromh)},
+    {"copy_fromd", nerv_matrix_(lua_copy_fromd)},
+    {"copy_toh", nerv_matrix_(lua_copy_toh)},
+    {"add", nerv_matrix_(lua_add)},
+    {"mul", nerv_matrix_(lua_mul)},
+    {"add_row", nerv_matrix_(lua_add_row)},
+    {"fill", nerv_matrix_(lua_fill)},
+    {"sigmoid", nerv_matrix_(lua_sigmoid)},
+    {"sigmoid_grad", nerv_matrix_(lua_sigmoid_grad)},
+    {"softmax", nerv_matrix_(lua_softmax)},
+    {"mul_elem", nerv_matrix_(lua_mul_elem)},
+    {"log_elem", nerv_matrix_(lua_log_elem)},
+    {"copy_rows_fromh_by_idx", nerv_matrix_(lua_copy_rows_fromh_by_idx)},
+    {"expand_frm", nerv_matrix_(lua_expand_frm)},
+    {"rearrange_frm", nerv_matrix_(lua_rearrange_frm)},
+    {"scale_rows_by_row", nerv_matrix_(lua_scale_rows_by_row)},
+    {"scale_rows_by_col", nerv_matrix_(lua_scale_rows_by_col)},
     {NULL, NULL}
 };
 
@@ -456,37 +312,34 @@ static void cuda_matrix_(init)(lua_State *L) {
     luaN_append_methods(L, nerv_matrix_(extra_methods));
 }
 
-static void cuda_matrix_(free)(lua_State *L, MATRIX_ELEM *ptr) {
-    CUDA_SAFE_SYNC_CALL(cudaFree(ptr));
+int nerv_matrix_(lua_get_elem)(lua_State *L) {
+    return nerv_error_method_not_implemented(L);
 }
 
-static void cuda_matrix_(alloc)(lua_State *L, MATRIX_ELEM **dptr,
-                                size_t *stride, long width, long height) {
-    PROFILE_START
-    CUDA_SAFE_SYNC_CALL(cudaMallocPitch((void **)dptr, stride, width, height));
-    PROFILE_STOP
+int nerv_matrix_(lua_set_elem)(lua_State *L) {
+    return nerv_error_method_not_implemented(L);
 }
 
 static MATRIX_ELEM cuda_matrix_(read)(lua_State *L, MATRIX_ELEM *data,
-                                        int idx) {
+                                    int idx) {
+    cudaError_t err;
     MATRIX_ELEM res;
-    CUDA_SAFE_SYNC_CALL(cudaMemcpy(&res, data + idx,
-                sizeof(MATRIX_ELEM), cudaMemcpyDeviceToHost));
+    err = cudaMemcpy(&res, data + idx,
+                sizeof(MATRIX_ELEM), cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess)
+        nerv_error(L, "cuda error: error while reading element");
+    cudaDeviceSynchronize();
     return res;
 }
 
 static void cuda_matrix_(write)(lua_State *L, MATRIX_ELEM *data,
                                 int idx, MATRIX_ELEM val) {
-    CUDA_SAFE_SYNC_CALL(cudaMemcpy(data + idx, &val,
-                sizeof(MATRIX_ELEM), cudaMemcpyHostToDevice));
-}
-
-int nerv_matrix_(get_elem)(lua_State *L) {
-    return nerv_error_method_not_implemented(L);
-}
-
-int nerv_matrix_(set_elem)(lua_State *L) {
-    return nerv_error_method_not_implemented(L);
+    cudaError_t err;
+    err = cudaMemcpy(data + idx, &val,
+                sizeof(MATRIX_ELEM), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess)
+        nerv_error(L, "cuda error: error while writing element");
+    cudaDeviceSynchronize();
 }
 
 #include "matrix.c"
