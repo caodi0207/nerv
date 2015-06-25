@@ -42,7 +42,7 @@ function SoftmaxCELayer:propagate(input, output)
         output[1]:copy_fromd(ce)
     end
     -- add total ce
-    self.total_ce = self.total_ce - ce:colsum()[0]
+    self.total_ce = self.total_ce - ce:colsum()[0][0]
     self.total_frames = self.total_frames + softmax:nrow()
     -- TODO: add colsame for uncompressed label
     if self.compressed then
