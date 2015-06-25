@@ -1,4 +1,4 @@
-#include "common.h"
+#include "lib/common.h"
 
 extern void nerv_example_init(lua_State *L);
 extern void nerv_matrix_init(lua_State *L);

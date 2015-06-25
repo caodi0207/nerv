@@ -1,5 +1,5 @@
 #ifdef NERV_GENERIC_MATRIX
-#include "../../common.h"
+#include "../../lib/common.h"
 #include "../../lib/matrix/generic/matrix.h"
 
 extern const char *nerv_matrix_(tname);

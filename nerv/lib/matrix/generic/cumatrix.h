@@ -1,4 +1,4 @@
-#include "../../../common.h"
+#include "../../common.h"
 
 void nerv_matrix_(add)(Matrix *c, const Matrix *a, const Matrix *b,
                             MATRIX_ELEM alpha, MATRIX_ELEM beta,

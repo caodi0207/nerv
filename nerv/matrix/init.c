@@ -1,4 +1,4 @@
-#include "../common.h"
+#include "../lib/common.h"
 
 const char *nerv_matrix_tname = "nerv.Matrix";
 const char *nerv_matrix_cuda_tname = "nerv.CuMatrix";

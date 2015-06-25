@@ -28,6 +28,13 @@ int nerv_error_status(lua_State *L, Status *status) {
         case MAT_INVALID_IDX: mmesg = "invalid index"; break;
         case MAT_CUDA_ERR: mmesg = "cuda error"; break;
         case MAT_CUBLAS_ERR: mmesg = "cublas error"; break;
+        case CF_INVALID_FORMAT: mmesg = "invalid format"; break;
+        case CF_END_OF_FILE: mmesg = "unexpected end of file"; break;
+        case CF_SECTION_OVERFLOW: mmesg = "section overflow"; break;
+        case CF_WRITE_ERROR: mmesg = "error while writing"; break;
+        case CF_ERR_OPEN_FILE: mmesg = "error while opening file"; break;
+        case CF_INVALID_OP: mmesg = "invalid operation"; break;
+        default: mmesg = "unknown"; break;
     }
     if (status->msg)
         nerv_error(L, "%s: %s @%s:%d", mmesg, status->msg,

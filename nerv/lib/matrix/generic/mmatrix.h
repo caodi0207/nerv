@@ -1,4 +1,5 @@
-#include "../../../common.h"
+#include "../../common.h"
+#include "../../io/chunk_file.h"
 
 Matrix *nerv_matrix_(load)(ChunkData *cdp, Status *status);
 void nerv_matrix_(save)(Matrix *self, ChunkFile *cfp, Status *status);

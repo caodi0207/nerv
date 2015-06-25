@@ -1,5 +1,5 @@
 #ifdef NERV_GENERIC_MATRIX
-#include "../../../common.h"
+#include "../../common.h"
 #include "matrix.h"
 /* FIXME: malloc failure detection */
 
@@ -12,7 +12,7 @@ static void nerv_matrix_(data_free)(Matrix *self, Status *status) {
         free(self->data_ref);
         free(self);
     }
-    else NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    else NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 static void nerv_matrix_(data_retain)(Matrix *self) {
@@ -27,7 +27,7 @@ Matrix *nerv_matrix_(create)(long nrow, long ncol, Status *status) {
     MATRIX_DATA_ALLOC(&MATRIX_ELEM_PTR(self), &self->stride,
                      sizeof(MATRIX_ELEM) * self->ncol, self->nrow,
                      status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
     {
         free(self);
         return NULL;
@@ -35,7 +35,7 @@ Matrix *nerv_matrix_(create)(long nrow, long ncol, Status *status) {
     self->data_ref = (long *)malloc(sizeof(long));
     *self->data_ref = 0;
     nerv_matrix_(data_retain)(self);
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return self;
 }
 

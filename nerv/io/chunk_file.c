@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include "../common.h"
+#include "../lib/common.h"
 #include "chunk_file.h"
 
 #define INVALID_FORMAT_ERROR(fn) \
@@ -17,15 +17,12 @@ const char *nerv_chunk_info_tname = "nerv.ChunkInfo";
 const char *nerv_chunk_data_tname = "nerv.ChunkData";
 
 int nerv_lua_chunk_file_new(lua_State *L) {
-    int status;
+    Status status;
     const char *fn = luaL_checkstring(L, 1);
     ChunkFile *cfp = nerv_chunk_file_create(fn,
                                             luaL_checkstring(L, 2),
                                             &status);
-    if (status != CF_NORMAL)
-    {
-        nerv_error(L, "%s: %s", fn, nerv_chunk_file_errstr(status));
-    }
+    NERV_LUA_CHECK_STATUS(L, status);
     lua_newtable(L);
     luaT_pushudata(L, cfp, nerv_chunk_file_handle_tname);
     lua_setfield(L, -2, "handle");
@@ -77,7 +74,7 @@ static void writer(void *L) {
 }
 
 int nerv_lua_chunk_file_write_chunkdata(lua_State *L) {
-    int status;
+    Status status;
     ChunkFile *cfp = luaT_checkudata(L, 1, nerv_chunk_file_handle_tname);
     const char *mdstr = lua_tolstring(L, 2, NULL);
     lua_getfield(L, 3, "write");
@@ -85,17 +82,17 @@ int nerv_lua_chunk_file_write_chunkdata(lua_State *L) {
         nerv_error(L, "\"write\" method must be implemented");
     lua_pushvalue(L, 3); /* lua writer itself */
     lua_pushvalue(L, 1); /* pass handle as parameter to write() */
-    nerv_chunk_file_write_chunkdata(cfp, mdstr, writer, (void *)L);
+    nerv_chunk_file_write_chunkdata(cfp, mdstr, writer, (void *)L, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
     return 0;
 }
 
 int nerv_lua_chunk_file_get_chunkdata(lua_State *L) {
-    int status;
+    Status status;
     ChunkFile *cfp = luaT_checkudata(L, 1, nerv_chunk_file_handle_tname);
     ChunkInfo *cip = luaT_checkudata(L, 2, nerv_chunk_info_tname);
     ChunkData *cdp = nerv_chunk_file_get_chunkdata(cfp, cip, &status);
-    if (status != CF_NORMAL)
-        nerv_error(L, "%s", nerv_chunk_file_errstr(status));
+    NERV_LUA_CHECK_STATUS(L, status);
     luaT_pushudata(L, cdp, nerv_chunk_data_tname);
     return 1;
 }

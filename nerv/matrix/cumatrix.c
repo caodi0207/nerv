@@ -1,5 +1,5 @@
 #define NERV_GENERIC_CUMATRIX
-#include "../common.h"
+#include "../lib/common.h"
 #include "../lib/matrix/cumatrix.h"
 #include "../lib/matrix/cuda_helper.h"
 #include <string.h>

@@ -1,6 +1,6 @@
 #define NERV_GENERIC_MMATRIX
 #include <stdlib.h>
-#include "../common.h"
+#include "../lib/common.h"
 void nerv_matrix_host_float_lua_init(lua_State *L);
 void nerv_matrix_host_double_lua_init(lua_State *L);
 void nerv_matrix_host_int_lua_init(lua_State *L);

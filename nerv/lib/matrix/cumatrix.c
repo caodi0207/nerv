@@ -1,5 +1,5 @@
 #define NERV_GENERIC_CUMATRIX
-#include "../../common.h"
+#include "../common.h"
 #include "cuda_helper.h"
 #include <string.h>
 #define PROFILE_HASHMAP_SIZE 123457

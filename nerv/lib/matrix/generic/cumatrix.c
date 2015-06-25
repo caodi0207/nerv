@@ -7,7 +7,7 @@
 
 #define NERV_GENERIC_MATRIX
 #define NERV_GENERIC_CUKERNEL
-#include "../../../common.h"
+#include "../../common.h"
 #include "../cukernel.h"
 #include "../cuda_helper.h"
 
@@ -27,7 +27,7 @@ void nerv_matrix_(add)(Matrix *c, const Matrix *a, const Matrix *b,
                 MATRIX_ELEM_PTR(c), c->stride / sizeof(MATRIX_ELEM)),
             status);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(mul)(Matrix *c, const Matrix *a, const Matrix *b,
@@ -54,7 +54,7 @@ void nerv_matrix_(mul)(Matrix *c, const Matrix *a, const Matrix *b,
                 MATRIX_ELEM_PTR(c), c->stride / sizeof(MATRIX_ELEM)),
             status);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(sigmoid)(Matrix *a, const Matrix *b, Status *status) {
@@ -62,7 +62,7 @@ void nerv_matrix_(sigmoid)(Matrix *a, const Matrix *b, Status *status) {
     PROFILE_START
     cudak_(cuda_sigmoid)(b, a);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(sigmoid_grad)(Matrix *nerr, const Matrix *err,
@@ -72,7 +72,7 @@ void nerv_matrix_(sigmoid_grad)(Matrix *nerr, const Matrix *err,
     PROFILE_START
     cudak_(cuda_sigmoid_grad)(output, err, nerr);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 Matrix *nerv_matrix_(softmax)(Matrix *b, const Matrix *a, Status *status) {
@@ -80,16 +80,16 @@ Matrix *nerv_matrix_(softmax)(Matrix *b, const Matrix *a, Status *status) {
     Matrix *dno;
     CHECK_SAME_DIMENSION_RET(a, b, status);
     max = nerv_matrix_(create)(a->nrow, 1, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     max_idx = nerv_matrix_(create)(a->nrow, 1, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
     {
         nerv_matrix_(destroy)(max, status);
         return NULL;
     }
     dno = nerv_matrix_(create)(a->nrow, 1, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
     {   /* FIXME: destroy may also fail? */
         nerv_matrix_(destroy)(max, status);
         nerv_matrix_(destroy)(max_idx, status);
@@ -102,63 +102,63 @@ Matrix *nerv_matrix_(softmax)(Matrix *b, const Matrix *a, Status *status) {
     PROFILE_STOP
     nerv_matrix_(destroy)(max, status);
     nerv_matrix_(destroy)(dno, status);
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return max_idx;
 }
 
 Matrix *nerv_matrix_(rowsum)(Matrix *a, Status *status) {
     Matrix *b = nerv_matrix_(create)(a->nrow, 1, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     PROFILE_START
     cudak_(cuda_rowsum)(a, b);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return b;
 }
 
 Matrix *nerv_matrix_(colsum)(Matrix *a, Status *status) {
     Matrix *b = nerv_matrix_(create)(1, a->ncol, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     PROFILE_START
     cudak_(cuda_colsum)(a, b);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return b;
 }
 
 Matrix *nerv_matrix_(colsame)(Matrix *a, const Matrix *ref,
                                 Status *status) {
     Matrix *b = nerv_matrix_(create)(1, a->ncol, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     CHECK_SAME_DIMENSION_RET(a, ref, status);
     PROFILE_START
     cudak_(cuda_colsame)(a, ref, b);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return b;
 }
 
 Matrix *nerv_matrix_(rowmax)(Matrix *a, Status *status) {
     Matrix *b = nerv_matrix_(create)(a->nrow, 1, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     PROFILE_START
     cudak_(cuda_rowmax)(a, b);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return b;
 }
 
 void nerv_matrix_(rowmax_idx)(Matrix *a, Matrix **b, Matrix **idx,
                                 Status *status) {
     *b = nerv_matrix_(create)(a->nrow, 1, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return;
     *idx = nerv_matrix_(create)(a->nrow, 1, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
     {
         /* FIXME: destroy may also fail? */
         nerv_matrix_(destroy)(*b, status);
@@ -167,7 +167,7 @@ void nerv_matrix_(rowmax_idx)(Matrix *a, Matrix **b, Matrix **idx,
     PROFILE_START
     cudak_(cuda_rowmax_idx)(a, *b, *idx);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(add_row)(Matrix *b, const Matrix *a, double beta,
@@ -179,14 +179,14 @@ void nerv_matrix_(add_row)(Matrix *b, const Matrix *a, double beta,
     PROFILE_START
     cudak_(cuda_add_row)(a, b, beta);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(fill)(Matrix *self, double val, Status *status) {
     PROFILE_START
     cudak_(cuda_fill)(self, val);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(copy_fromd)(Matrix *a, const Matrix *b,
@@ -205,7 +205,7 @@ void nerv_matrix_(copy_fromd)(Matrix *a, const Matrix *b,
                 cudaMemcpyDeviceToDevice),
             status);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(copy_fromh)(Matrix *a, const Matrix *b,
@@ -224,7 +224,7 @@ void nerv_matrix_(copy_fromh)(Matrix *a, const Matrix *b,
                 cudaMemcpyHostToDevice),
             status);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(copy_toh)(Matrix *a, const Matrix *b,
@@ -243,13 +243,13 @@ void nerv_matrix_(copy_toh)(Matrix *a, const Matrix *b,
                 cudaMemcpyDeviceToHost),
             status);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 Matrix *nerv_matrix_(trans)(Matrix *a, Status *status) {
     MATRIX_ELEM alpha = 1, beta = 0;
     Matrix *b = nerv_matrix_(create)(a->ncol, a->nrow, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     /* FIXME: possible memory leak when lua error is raised */
     PROFILE_START
@@ -263,7 +263,7 @@ Matrix *nerv_matrix_(trans)(Matrix *a, Status *status) {
                 MATRIX_ELEM_PTR(b), b->stride / sizeof(MATRIX_ELEM)),
             status);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return b;
 }
 
@@ -274,7 +274,7 @@ void nerv_matrix_(mul_elem)(Matrix *c, const Matrix *a, const Matrix *b,
     PROFILE_START
     cudak_(cuda_mul_elem)(a, b, c);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(log_elem)(Matrix *b, const Matrix *a, Status *status) {
@@ -282,7 +282,7 @@ void nerv_matrix_(log_elem)(Matrix *b, const Matrix *a, Status *status) {
     PROFILE_START
     cudak_(cuda_log_elem)(a, b);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 Matrix *nerv_matrix_(decompress)(const Matrix *a, int orig_col, Status *status) {
@@ -293,13 +293,13 @@ Matrix *nerv_matrix_(decompress)(const Matrix *a, int orig_col, Status *status) 
         return NULL;
     }
     b = nerv_matrix_(create)(a->nrow, orig_col, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     PROFILE_START
     cudak_(cuda_fill)(b, 0.0);
     cudak_(cuda_decompress)(a, b);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return b;
 }
 
@@ -332,7 +332,7 @@ void nerv_matrix_(copy_rows_fromh_by_idx)(Matrix *a, const Matrix *b,
         CUDA_SAFE_CALL(cudaStreamDestroy(streams[i]), status);
     }
     free(streams);
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(expand_frm)(Matrix *a, const Matrix *b,
@@ -345,7 +345,7 @@ void nerv_matrix_(expand_frm)(Matrix *a, const Matrix *b,
     PROFILE_START
     cudak_(cuda_expand_frm)(b, a, context);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(rearrange_frm)(Matrix *a, const Matrix *b,
@@ -357,7 +357,7 @@ void nerv_matrix_(rearrange_frm)(Matrix *a, const Matrix *b,
     PROFILE_START
     cudak_(cuda_rearrange_frm)(b, a, step);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(scale_rows_by_col)(Matrix *a, const Matrix *b,
@@ -369,7 +369,7 @@ void nerv_matrix_(scale_rows_by_col)(Matrix *a, const Matrix *b,
     PROFILE_START
     cudak_(cuda_scale_rows_by_col)(b, a);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(scale_rows_by_row)(Matrix *a, const Matrix *b,
@@ -381,12 +381,12 @@ void nerv_matrix_(scale_rows_by_row)(Matrix *a, const Matrix *b,
     PROFILE_START
     cudak_(cuda_scale_rows_by_row)(b, a);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 static void cuda_matrix_(free)(MATRIX_ELEM *ptr, Status *status) {
     CUDA_SAFE_SYNC_CALL(cudaFree(ptr), status);
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 static void cuda_matrix_(alloc)(MATRIX_ELEM **dptr,
@@ -396,7 +396,7 @@ static void cuda_matrix_(alloc)(MATRIX_ELEM **dptr,
     CUDA_SAFE_SYNC_CALL(cudaMallocPitch((void **)dptr, stride, width, height),
                         status);
     PROFILE_STOP
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 #include "matrix.c"

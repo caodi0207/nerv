@@ -8,6 +8,5 @@ luarocks:
 	PREFIX=$(PREFIX) ./tools/build_luarocks.sh
 install:
 	cd nerv; $(PREFIX)/bin/luarocks make
-	ln -sfv $(PREFIX)/lib/lua/5.1/libnerv.so $(PREFIX)/lib/ # FIXME: bad trick
 speech:
-	cd speech; $(PREFIX)/bin/luarocks make
+	cd speech/htk_io; $(PREFIX)/bin/luarocks make

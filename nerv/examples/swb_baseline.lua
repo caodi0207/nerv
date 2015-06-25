@@ -1,4 +1,4 @@
-require 'speech.init'
+require 'htk_io'
 gconf = {lrate = 0.8, wcost = 1e-6, momentum = 0.9,
         cumat_type = nerv.CuMatrixFloat,
         mmat_type = nerv.MMatrixFloat,

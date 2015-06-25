@@ -1,6 +1,6 @@
 #define NERV_GENERIC_MMATRIX
 #include <stdlib.h>
-#include "../../common.h"
+#include "../common.h"
 
 #define MATRIX_USE_FLOAT
 #define host_matrix_(NAME) host_matrix_float_##NAME
@@ -37,7 +37,7 @@
 Matrix *nerv_matrix_(perm_gen)(int ncol, Status *status) {
     int i;
     Matrix *self = nerv_matrix_(create)(1, ncol, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     long *prow = self->data.i;
     for (i = 0; i < ncol; i++)

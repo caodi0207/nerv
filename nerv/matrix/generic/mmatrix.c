@@ -6,9 +6,9 @@
 #define MATRIX_INIT(L) host_matrix_(init)(L)
 #define MATRIX_BASE_TNAME nerv_matrix_host_tname
 #define NERV_GENERIC_MATRIX
-#include "../../common.h"
-#include "../../io/chunk_file.h"
+#include "../../lib/common.h"
 #include "../../lib/matrix/generic/mmatrix.h"
+#include "../../io/chunk_file.h"
 #include "string.h"
 
 int nerv_matrix_(lua_get_elem)(lua_State *L) {

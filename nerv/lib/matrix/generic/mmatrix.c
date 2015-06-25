@@ -5,13 +5,13 @@
 #define MATRIX_DATA_ALLOC(dptr, stride, width, height, status) \
                             host_matrix_(alloc)(dptr, stride, width, height, status)
 #define NERV_GENERIC_MATRIX
-#include "../../../common.h"
+#include "../../common.h"
 #include "../../io/chunk_file.h"
 #include "string.h"
 
 static void host_matrix_(free)(MATRIX_ELEM *ptr, Status *status) {
     free(ptr);
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 static void host_matrix_(alloc)(MATRIX_ELEM **dptr, size_t *stride,
@@ -19,7 +19,7 @@ static void host_matrix_(alloc)(MATRIX_ELEM **dptr, size_t *stride,
     if ((*dptr = (MATRIX_ELEM *)malloc(width * height)) == NULL)
         NERV_EXIT_STATUS(status, MAT_INSUF_MEM, 0);
     *stride = width;
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 #include "matrix.c"
@@ -31,7 +31,7 @@ Matrix *nerv_matrix_(load)(ChunkData *cdp, Status *status) {
     if (fscanf(fp, "%ld %ld", &nrow, &ncol) != 2)
         NERV_EXIT_STATUS(status, MAT_INVALID_FORMAT, 0);
     self = nerv_matrix_(create)(nrow, ncol, status);
-    if (status->err_code != MAT_NORMAL)
+    if (status->err_code != NERV_NORMAL)
         return NULL;
     for (i = 0; i < nrow; i++)
     {
@@ -43,7 +43,7 @@ Matrix *nerv_matrix_(load)(ChunkData *cdp, Status *status) {
                 NERV_EXIT_STATUS(status, MAT_INVALID_FORMAT, 0);
             }
     }
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
     return self;
 }
 
@@ -62,7 +62,7 @@ void nerv_matrix_(save)(Matrix *self, ChunkFile *cfp, Status *status) {
         if (fprintf(fp, "\n") < 0)
             NERV_EXIT_STATUS(status, MAT_WRITE_ERROR, 0);
     }
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 void nerv_matrix_(copy_from)(Matrix *a, const Matrix *b,
@@ -76,7 +76,7 @@ void nerv_matrix_(copy_from)(Matrix *a, const Matrix *b,
     memmove(MATRIX_ROW_PTR(a, a_begin),
             MATRIX_ROW_PTR(b, b_begin),
             sizeof(MATRIX_ELEM) * b->ncol * (b_end - b_begin));
-    NERV_SET_STATUS(status, MAT_NORMAL, 0);
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
 #endif

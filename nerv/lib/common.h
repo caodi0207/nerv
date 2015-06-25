@@ -3,12 +3,13 @@
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
-#include "lib/luaT/luaT.h"
+#include "luaT/luaT.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-enum {
-    MAT_NORMAL,
+typedef enum ErrCode {
+    NERV_NORMAL,
+    /* matrix err */
     MAT_GENERAL_ERR,
     MAT_INSUF_MEM,
     MAT_INVALID_FORMAT,
@@ -21,11 +22,18 @@ enum {
     MAT_IDX_VECTOR_EXP,
     MAT_INVALID_IDX,
     MAT_CUDA_ERR,
-    MAT_CUBLAS_ERR
-};
+    MAT_CUBLAS_ERR,
+    /* chunk file err */
+    CF_INVALID_FORMAT,
+    CF_END_OF_FILE,
+    CF_SECTION_OVERFLOW,
+    CF_WRITE_ERROR,
+    CF_ERR_OPEN_FILE,
+    CF_INVALID_OP,
+} ErrCode;
 
 typedef struct Status {
-    int err_code;
+    ErrCode err_code;
     const char *file;
     int lineno;
     const char *msg;
@@ -33,8 +41,8 @@ typedef struct Status {
 
 #define NERV_SET_STATUS(status, code, m) \
     do { \
-        (status)->err_code = code; \
-        (status)->msg = m; \
+        (status)->err_code = (code); \
+        (status)->msg = (m); \
         (status)->file = __FILE__; \
         (status)->lineno = __LINE__; \
     } while (0)
@@ -47,7 +55,7 @@ typedef struct Status {
 
 #define NERV_LUA_CHECK_STATUS(L, status) \
     do { \
-        if (status.err_code != MAT_NORMAL) \
+        if (status.err_code != NERV_NORMAL) \
             nerv_error_status(L, &status); \
     } while (0)
 

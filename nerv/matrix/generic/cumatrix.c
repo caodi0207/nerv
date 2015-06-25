@@ -1,5 +1,4 @@
 #ifdef NERV_GENERIC_CUMATRIX
-#include "../../lib/matrix/generic/matrix.h"
 #include "elem_type.h"
 #define MATRIX_DATA_WRITE(L, data, idx, val) cuda_matrix_(write)(L, data, idx, val)
 #define MATRIX_DATA_READ(L, data, idx) cuda_matrix_(read)(L, data, idx)
@@ -7,7 +6,8 @@
 #define MATRIX_BASE_TNAME nerv_matrix_cuda_tname
 #define NERV_GENERIC_MATRIX
 #define NERV_GENERIC_CUKERNEL
-#include "../../common.h"
+#include "../../lib/common.h"
+#include "../../lib/matrix/generic/matrix.h"
 #include "../../lib/matrix/generic/cumatrix.h"
 
 static int nerv_matrix_(lua_add)(lua_State *L) {

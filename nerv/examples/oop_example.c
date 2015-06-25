@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../common.h"
+#include "../lib/common.h"
 
 #define SQR(x) ((x) * (x))
 
