@@ -31,7 +31,7 @@ static int nerv_matrix_(lua_newindex)(lua_State *L) {
     if (lua_isnumber(L, 2))
     {
         int idx = luaL_checkinteger(L, 2);
-        if (self->nrow == 1)
+        if (self->dim == 1)
         {
             if (idx < 0 || idx >= self->ncol)
                 nerv_error(L, "index must be within range [0, %d)", self->ncol);
@@ -57,7 +57,7 @@ static int nerv_matrix_(lua_index)(lua_State *L) {
     if (lua_isnumber(L, 2))
     {
         int idx = luaL_checkinteger(L, 2);
-        if (self->nrow == 1)
+        if (self->dim == 1)
         {
             if (idx < 0 || idx >= self->ncol)
                 nerv_error(L, "index must be within range [0, %d)", self->ncol);
@@ -86,6 +86,12 @@ static int nerv_matrix_(lua_ncol)(lua_State *L) {
     return 1;
 }
 
+static int nerv_matrix_(lua_dim)(lua_State *L) {
+    Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    lua_pushinteger(L, self->dim);
+    return 1;
+}
+
 static int nerv_matrix_(lua_nrow)(lua_State *L) {
     Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
     lua_pushinteger(L, self->nrow);
@@ -103,6 +109,7 @@ static const luaL_Reg nerv_matrix_(methods)[] = {
     {"set_elem", nerv_matrix_(lua_set_elem)},
     {"ncol", nerv_matrix_(lua_ncol)},
     {"nrow", nerv_matrix_(lua_nrow)},
+    {"dim", nerv_matrix_(lua_dim)},
     {"get_dataref_value", nerv_matrix_(lua_get_dataref_value)},
     {"__index__", nerv_matrix_(lua_index)},
     {"__newindex__", nerv_matrix_(lua_newindex)},

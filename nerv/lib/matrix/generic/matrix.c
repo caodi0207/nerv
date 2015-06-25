@@ -24,6 +24,7 @@ Matrix *nerv_matrix_(create)(long nrow, long ncol, Status *status) {
     self->nrow = nrow;
     self->ncol = ncol;
     self->nmax = self->nrow * self->ncol;
+    self->dim = 2;
     MATRIX_DATA_ALLOC(&MATRIX_ELEM_PTR(self), &self->stride,
                      sizeof(MATRIX_ELEM) * self->ncol, self->nrow,
                      status);
@@ -47,6 +48,7 @@ Matrix *nerv_matrix_(getrow)(Matrix *self, int row) {
     Matrix *prow = (Matrix *)malloc(sizeof(Matrix));
     prow->ncol = self->ncol;
     prow->nrow = 1;
+    prow->dim = 1;
     prow->stride = self->stride;
     prow->nmax = prow->ncol;
     MATRIX_ELEM_PTR(prow) = MATRIX_ROW_PTR(self, row);

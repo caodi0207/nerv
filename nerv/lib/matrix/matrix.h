@@ -6,6 +6,7 @@
 typedef struct Matrix {
     size_t stride;              /* size of a row */
     long ncol, nrow, nmax;    /* dimension of the matrix */
+    int dim; /* dim == 2 for a matrix, dim == 1 for row vector */
     union {
         float *f;
         double *d;
