@@ -105,10 +105,6 @@ function make_layer_repo(sublayer_repo, param_repo)
     }, param_repo, gconf)
 end
 
-function get_criterion_layer(sublayer_repo)
-    return sublayer_repo:get_layer("ce_crit")
-end
-
 function get_network(layer_repo)
     return layer_repo:get_layer("main")
 end
