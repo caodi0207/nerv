@@ -11,4 +11,4 @@ install:
 speech:
 	cd speech/htk_io; $(PREFIX)/bin/luarocks make
 clean:
-	rm -r $(CURDIR)/install
+	cd nerv && make clean

@@ -1,6 +1,7 @@
 function nerv.Matrix:__tostring__()
     local ncol = self:ncol()
     local nrow = self:nrow()
+    local dim = self:dim()
     local strt = {}
     local fmt
     if self.fmt then
@@ -8,7 +9,7 @@ function nerv.Matrix:__tostring__()
     else
         fmt = "%.8f "
     end
-    if nrow == 1 then
+    if dim == 1 then
         for col = 0, ncol - 1 do
             table.insert(strt, string.format(fmt, self[col]))
         end
@@ -28,9 +29,9 @@ function nerv.Matrix:__tostring__()
 end
 
 -- gen: a function takes take indices of the matrix and return the generated
--- all entrys in the matrix will be assigned by calling gen(i, j)
+-- all entrys in the matrix will be assigned by calling gen(i, j), if self is a row vector, gen(j) will be called
 function nerv.Matrix:generate(gen)
-    if (self:nrow() == 1) then
+    if (self:dim() == 1) then
         for j = 0, self:ncol() - 1 do
             self[j] = gen(j)
         end
