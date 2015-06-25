@@ -46,7 +46,7 @@ function SoftmaxCELayer:propagate(input, output)
     self.total_frames = self.total_frames + softmax:nrow()
     -- TODO: add colsame for uncompressed label
     if self.compressed then
-        self.total_correct = self.total_correct + classified:colsame(input[2])[0]
+        self.total_correct = self.total_correct + classified:colsame(input[2])[0][0]
     end
 end
 
