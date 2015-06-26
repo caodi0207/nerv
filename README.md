@@ -1,4 +1,6 @@
 #The Nerv Toolkit User Manual#
+NOTE: This readme is obsolete and will be rearranged, for further information, please check http://determinant.github.io/nerv/
+
 This user manual will information about how to use __Nerv__ and __Nerv__'s interface.
 
 ##How to use##
