@@ -12,7 +12,10 @@ static void nerv_matrix_(data_free)(Matrix *self, Status *status) {
         free(self->data_ref);
         free(self);
     }
-    else NERV_SET_STATUS(status, NERV_NORMAL, 0);
+    else {
+        free(self);
+        NERV_SET_STATUS(status, NERV_NORMAL, 0);
+    }
 }
 
 static void nerv_matrix_(data_retain)(Matrix *self) {
