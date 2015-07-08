@@ -20,6 +20,7 @@ void nerv_matrix_(rowmax_idx)(Matrix *a, Matrix **b, Matrix **idx,
                                 Status *status);
 void nerv_matrix_(add_row)(Matrix *b, const Matrix *a, double beta,
                             Status *status);
+void nerv_matrix_(clip)(Matrix *self, double val_1, double val_2, Status *status);
 void nerv_matrix_(fill)(Matrix *self, double val, Status *status);
 void nerv_matrix_(copy_fromd)(Matrix *a, const Matrix *b,
                             int a_begin, int b_begin, int b_end,

@@ -149,6 +149,16 @@ static int nerv_matrix_(lua_fill)(lua_State *L) {
     return 0;
 }
 
+static int nerv_matrix_(lua_clip)(lua_State *L) {
+    Status status;
+    Matrix *self = luaT_checkudata(L, 1, nerv_matrix_(tname));
+    double val_1 = luaL_checknumber(L, 2);
+    double val_2 = luaL_checknumber(L, 3);
+    nerv_matrix_(clip)(self, val_1, val_2, &status);
+    NERV_LUA_CHECK_STATUS(L, status);
+    return 0;
+}
+
 static int nerv_matrix_(lua_copy_fromd)(lua_State *L) {
     Status status;
     Matrix *a = luaT_checkudata(L, 1, nerv_matrix_(tname));
@@ -294,6 +304,7 @@ static const luaL_Reg nerv_matrix_(extra_methods)[] = {
     {"add", nerv_matrix_(lua_add)},
     {"mul", nerv_matrix_(lua_mul)},
     {"add_row", nerv_matrix_(lua_add_row)},
+    {"clip", nerv_matrix_(lua_clip)},
     {"fill", nerv_matrix_(lua_fill)},
     {"sigmoid", nerv_matrix_(lua_sigmoid)},
     {"sigmoid_grad", nerv_matrix_(lua_sigmoid_grad)},

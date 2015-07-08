@@ -189,6 +189,13 @@ void nerv_matrix_(fill)(Matrix *self, double val, Status *status) {
     NERV_SET_STATUS(status, NERV_NORMAL, 0);
 }
 
+void nerv_matrix_(clip)(Matrix *self, double val_1, double val_2, Status *status) {
+    PROFILE_START
+    cudak_(cuda_clip)(self, val_1, val_2);
+    PROFILE_STOP
+    NERV_SET_STATUS(status, NERV_NORMAL, 0);
+}
+
 void nerv_matrix_(copy_fromd)(Matrix *a, const Matrix *b,
                             int a_begin, int b_begin, int b_end,
                             Status *status) {
