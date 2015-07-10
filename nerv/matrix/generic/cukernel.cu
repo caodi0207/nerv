@@ -213,6 +213,17 @@ __global__ void cudak_(fill)(MATRIX_ELEM *a,
     a[j + i * stride] = val;
 }
 
+__global__ void cudak_(clip)(MATRIX_ELEM *a,
+                            int nrow, int ncol, int stride, double val_1, double val_2) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i >= nrow || j >= ncol) return;
+    if (a[j + i * stride] > val_2)
+        a[j + i * stride] = val_2;
+    else if (a[j + i * stride] < val_1)
+        a[j + i * stride] = val_1;
+}
+
 __global__ void cudak_(expand_frm)(const MATRIX_ELEM *a, MATRIX_ELEM *b,
                                     int nrow, int ncol,
                                     int enrow, int encol,
@@ -507,6 +518,16 @@ extern "C" {
         cudak_(fill)<<<numBlocks, threadsPerBlock>>> \
             (MATRIX_ELEM_PTR(a), a->nrow, a->ncol,
             a->stride / sizeof(MATRIX_ELEM), val);
+        cudaStreamSynchronize(0);
+    }
+
+    void cudak_(cuda_clip)(Matrix *a, double val_1, double val_2) {
+        dim3 threadsPerBlock(CUDA_THREADS_N, CUDA_THREADS_N);
+        dim3 numBlocks(CEIL_DIV(a->ncol, threadsPerBlock.x),
+                CEIL_DIV(a->nrow, threadsPerBlock.y));
+        cudak_(clip)<<<numBlocks, threadsPerBlock>>> \
+            (MATRIX_ELEM_PTR(a), a->nrow, a->ncol,
+            a->stride / sizeof(MATRIX_ELEM), val_1, val_2);
         cudaStreamSynchronize(0);
     }
 

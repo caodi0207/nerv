@@ -31,13 +31,13 @@ OBJS := $(CORE_OBJS) $(NERV_OBJS) $(LUAT_OBJS)
 LIBS := $(INST_LIBDIR)/libnerv.so $(LIB_PATH)/libnervcore.so $(LIB_PATH)/libluaT.so
 LUA_LIBS := matrix/init.lua io/init.lua init.lua \
 			layer/init.lua layer/affine.lua layer/sigmoid.lua layer/softmax_ce.lua \
-			layer/window.lua layer/bias.lua layer/combiner.lua layer/mse.lua \
+			layer/window.lua layer/bias.lua layer/combiner.lua layer/mse.lua layer/affine_recurrent.lua\
 			nn/init.lua nn/layer_repo.lua nn/param_repo.lua nn/layer_dag.lua \
-			io/sgd_buffer.lua
+			io/sgd_buffer.lua 
 
 INCLUDE := -I $(LUA_INCDIR) -DLUA_USE_APICHECK
-#CUDA_BASE := /usr/local/cuda-6.5
-CUDA_BASE := /usr/local/cuda-5.0
+CUDA_BASE := /usr/local/cuda-6.5
+#CUDA_BASE := /usr/local/cuda-5.0
 CUDA_INCLUDE := -I $(CUDA_BASE)/include/
 INCLUDE += $(CUDA_INCLUDE)
 

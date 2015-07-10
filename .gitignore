@@ -1,4 +1,5 @@
 *.o
 install/
+build/
 *.swp
 *.swo
