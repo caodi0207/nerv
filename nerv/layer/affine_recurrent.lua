@@ -15,6 +15,8 @@ function Recurrent:__init(id, global_conf, layer_conf)
     
     self:check_dim_len(2, 1)
     self.direct_update = layer_conf.direct_update
+
+    self.clip = layer_conf.clip --clip error in back_propagate
 end
 
 --Check parameter 
@@ -75,7 +77,9 @@ function Recurrent:back_propagate(bp_err, next_bp_err, input, output)
         end
     end
     ]]--
-    next_bp_err[2]:clip(-10, 10)
+    if (self.clip ~= nil) then
+        next_bp_err[2]:clip(-self.clip, self.clip)
+    end
 end
 
 function Recurrent:get_params()
