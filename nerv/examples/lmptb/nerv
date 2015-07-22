@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec '/home/slhome/txh18/workspace/nerv-project/nerv/install/bin/luajit' -e 'package.path="/home/slhome/txh18/.luarocks//share/lua/5.1/?.lua;/home/slhome/txh18/.luarocks//share/lua/5.1/?/init.lua;/home/slhome/txh18/workspace/nerv-project/nerv/install/share/lua/5.1/?.lua;/home/slhome/txh18/workspace/nerv-project/nerv/install/share/lua/5.1/?/init.lua;"..package.path; package.cpath="/home/slhome/txh18/.luarocks//lib/lua/5.1/?.so;/home/slhome/txh18/workspace/nerv-project/nerv/install/lib/lua/5.1/?.so;"..package.cpath' -e 'local k,l,_=pcall(require,"luarocks.loader") _=k and l.add_context("nerv","scm-1")' '/home/slhome/txh18/workspace/nerv-project/nerv/install/lib/luarocks/rocks/nerv/scm-1/bin/nerv' "$@"
