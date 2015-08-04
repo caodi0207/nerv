@@ -49,12 +49,6 @@ void propagate(float for_fun) {
     }
     /* avoid gc */
     nerv_matrix_host_float_data_retain(input);
-    nerv_matrix_host_float_data_retain(input);
-    nerv_matrix_host_float_data_retain(input);
-    nerv_matrix_host_float_data_retain(input);
-    nerv_matrix_host_float_data_retain(output);
-    nerv_matrix_host_float_data_retain(output);
-    nerv_matrix_host_float_data_retain(output);
     nerv_matrix_host_float_data_retain(output);
 
     luaT_pushudata(L, input, nerv_matrix_host_float_tname);
