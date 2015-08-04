@@ -30,7 +30,7 @@ LUAT_OBJS := $(addprefix $(OBJ_DIR)/,$(LUAT_OBJS))
 OBJS := $(CORE_OBJS) $(NERV_OBJS) $(LUAT_OBJS)
 LIBS := $(INST_LIBDIR)/libnerv.so $(LIB_PATH)/libnervcore.so $(LIB_PATH)/libluaT.so
 LUA_LIBS := matrix/init.lua io/init.lua init.lua \
-			layer/init.lua layer/affine.lua layer/sigmoid.lua layer/softmax_ce.lua \
+			layer/init.lua layer/affine.lua layer/sigmoid.lua layer/softmax_ce.lua layer/softmax.lua \
 			layer/window.lua layer/bias.lua layer/combiner.lua layer/mse.lua layer/affine_recurrent.lua\
 			nn/init.lua nn/layer_repo.lua nn/param_repo.lua nn/layer_dag.lua \
 			io/sgd_buffer.lua 

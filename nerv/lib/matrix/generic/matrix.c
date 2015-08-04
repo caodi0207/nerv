@@ -3,7 +3,7 @@
 #include "matrix.h"
 /* FIXME: malloc failure detection */
 
-static void nerv_matrix_(data_free)(Matrix *self, Status *status) {
+void nerv_matrix_(data_free)(Matrix *self, Status *status) {
     assert(*self->data_ref > 0);
     if (--(*self->data_ref) == 0)
     {
@@ -18,7 +18,7 @@ static void nerv_matrix_(data_free)(Matrix *self, Status *status) {
     }
 }
 
-static void nerv_matrix_(data_retain)(Matrix *self) {
+void nerv_matrix_(data_retain)(Matrix *self) {
     (*self->data_ref)++;
 }
 
