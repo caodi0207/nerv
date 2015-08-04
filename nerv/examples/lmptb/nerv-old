@@ -1,0 +1,3 @@
+#!/bin/bash
+NERV_PATH="../.."
+exec "${NERV_PATH}/build/luajit-2.0/bin/luajit" -e "package.cpath=\"${NERV_PATH}/build/lib/?.so\"" -e "package.path=\"${NERV_PATH}/build/lua/?/init.lua;${NERV_PATH}/build/lua/?.lua;./?.lua;./?/init.lua\"" -e "require 'nerv'" "$@"
