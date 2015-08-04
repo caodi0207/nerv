@@ -177,6 +177,9 @@ end
 
 function DAGLayer:set_inputs(input)
     for i = 1, #self.dim_in do
+        if input[i] == nil then
+            nerv.error("some input is not provided");
+        end
         local layer = self.inputs[i][1]
         local port = self.inputs[i][2]
         layer.inputs[port] = input[i]
@@ -185,6 +188,9 @@ end
 
 function DAGLayer:set_outputs(output)
     for i = 1, #self.dim_out do
+        if output[i] == nil then
+            nerv.error("some output is not provided");
+        end
         local layer = self.outputs[i][1]
         local port = self.outputs[i][2]
         layer.outputs[port] = output[i]

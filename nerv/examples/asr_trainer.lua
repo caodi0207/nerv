@@ -12,7 +12,7 @@ function build_trainer(ifname)
         -- initialize the network
         network:init(gconf.batch_size)
         gconf.cnt = 0
-        err_input = {nerv.CuMatrixFloat(256, 1)}
+        err_input = {nerv.CuMatrixFloat(gconf.batch_size, 1)}
         err_input[1]:fill(1)
         for data in buffer.get_data, buffer do
             -- prine stat periodically
@@ -32,7 +32,7 @@ function build_trainer(ifname)
                 end
                 table.insert(input, data[id])
             end
-            local output = {nerv.CuMatrixFloat(256, 1)}
+            local output = {nerv.CuMatrixFloat(gconf.batch_size, 1)}
             err_output = {input[1]:create()}
             network:propagate(input, output)
             if bp then

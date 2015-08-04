@@ -1,7 +1,7 @@
 require 'libnerv'
 
 function nerv.error(fmt, ...)
-    error(nerv.printf("[nerv] internal error: " .. fmt .. "\n", ...))
+    error("[nerv] internal error: " .. fmt .. "\n", ...)
 end
 
 function nerv.error_method_not_implemented()
