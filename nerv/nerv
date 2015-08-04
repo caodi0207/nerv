@@ -1,13 +1,13 @@
 #! /usr/bin/env luajit
 require 'nerv'
 print("Greetings")
-if #args < 1 then
+if #arg < 1 then
     return
 end
-local script = args[1]
+local script = arg[1]
 local script_arg = {}
-for i = 2, #args do
-    table.insert(script_arg, args[i])
+for i = 2, #arg do
+    table.insert(script_arg, arg[i])
 end
-args = script_arg
+arg = script_arg
 dofile(script)
