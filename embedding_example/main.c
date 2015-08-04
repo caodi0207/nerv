@@ -7,6 +7,8 @@
 #include <stdio.h>
 
 const char *nerv_matrix_host_float_tname = "nerv.MMatrixFloat";
+const char *input_name = "_nerv_embed_input";
+const char *output_name = "_nerv_embed_output";
 extern Matrix *nerv_matrix_host_float_create(long nrow, long ncol, Status *status);
 extern void nerv_matrix_host_float_data_retain(Matrix *self);
 extern void nerv_matrix_host_float_data_free(Matrix *self, Status *status);
@@ -31,6 +33,11 @@ void setup_nerv() {
     NERV_LUA_CHECK_STATUS(L, status);
     output = nerv_matrix_host_float_create(1, luaL_checkinteger(L, 2), &status);
     NERV_LUA_CHECK_STATUS(L, status);
+    /* add reference to avoid gc */
+    luaT_pushudata(L, output, nerv_matrix_host_float_tname);
+    luaT_pushudata(L, input, nerv_matrix_host_float_tname);
+    lua_setfield(L, LUA_GLOBALSINDEX, input_name);
+    lua_setfield(L, LUA_GLOBALSINDEX, output_name);
 }
 
 
@@ -47,12 +54,8 @@ void propagate(float for_fun) {
             nerv_row[j] = j * for_fun;
         }
     }
-    /* avoid gc */
-    nerv_matrix_host_float_data_retain(input);
-    nerv_matrix_host_float_data_retain(output);
-
-    luaT_pushudata(L, input, nerv_matrix_host_float_tname);
-    luaT_pushudata(L, output, nerv_matrix_host_float_tname);
+    lua_getfield(L, LUA_GLOBALSINDEX, input_name);
+    lua_getfield(L, LUA_GLOBALSINDEX, output_name);
     /* lua stack now: input width, output width, propagator, propagator, input, output */
     if (lua_pcall(L, 2, 0, 0)) /* call propagator with two parameters */
     {
@@ -60,7 +63,7 @@ void propagate(float for_fun) {
         exit(-1);
     }
     /* lua stack now: input width, output width, propagator */
-    printf("## caller ##\n");
+    printf("## output: %ld %ld ##\n", output->nrow, output->ncol);
     for (i = 0; i < output->nrow; i++) /* nrow is actually 1 */
     {
         float *nerv_row = (float *)((char *)output->data.f + i * output->stride);
@@ -68,20 +71,21 @@ void propagate(float for_fun) {
         {
             printf("%.8f ", nerv_row[j]);
         }
-        printf("\n");
     }
 }
 
 void teardown_nerv() {
-    nerv_matrix_host_float_data_free(input, &status);
-    NERV_LUA_CHECK_STATUS(L, status);
-    nerv_matrix_host_float_data_free(output, &status);
-    NERV_LUA_CHECK_STATUS(L, status);
+    lua_pushnil(L);
+    lua_pushnil(L);
+    lua_setfield(L, LUA_GLOBALSINDEX, input_name);
+    lua_setfield(L, LUA_GLOBALSINDEX, output_name);
+    lua_gc(L, LUA_GCCOLLECT, 0);
 }
 
 int main() {
     setup_nerv();
     propagate(1.0);
+    propagate(2.0);
     propagate(2.0);
     propagate(3.0);
     teardown_nerv();
