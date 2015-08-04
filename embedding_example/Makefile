@@ -4,6 +4,11 @@ GCC := gcc
 
 .PHONY: FORCE
 
+all: main FORCE
+clean:
+	-rm -f *.o
+	-rm main
+
 FORCE: ../install/bin/luarocks
 	echo "#!/bin/bash" > run.sh
 	$< path >> run.sh
