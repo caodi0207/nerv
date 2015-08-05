@@ -107,3 +107,8 @@ end
 function get_network(layer_repo)
     return layer_repo:get_layer("main")
 end
+
+
+function get_global_transf(layer_repo)
+    return layer_repo:get_layer("global_transf")
+end

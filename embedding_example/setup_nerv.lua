@@ -7,17 +7,19 @@ param_repo:import(gconf.initialized_param, nil, gconf)
 local sublayer_repo = make_sublayer_repo(param_repo)
 local layer_repo = make_layer_repo(sublayer_repo, param_repo)
 local network = get_network(layer_repo)
+local global_transf = get_global_transf(layer_repo)
 local batch_size = 1
 network:init(batch_size)
 
 function propagator(input, output)
-    local gpu_input = nerv.CuMatrixFloat(input:nrow(), input:ncol())
+    local transformed = nerv.speech_utils.global_transf(input,
+                            global_transf, 0, gconf) -- preprocessing
+    local gpu_input = nerv.CuMatrixFloat(transformed:nrow(), transformed:ncol())
     local gpu_output = nerv.CuMatrixFloat(output:nrow(), output:ncol())
-    gpu_input:copy_fromh(input)
-    print(gpu_input)
+    print(transformed)
+    gpu_input:copy_fromh(transformed)
     network:propagate({gpu_input}, {gpu_output})
     gpu_output:copy_toh(output)
-    print(output)
     -- collect garbage in-time to save GPU memory
     collectgarbage("collect")
 end
