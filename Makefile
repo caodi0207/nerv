@@ -9,6 +9,7 @@ luarocks:
 install:
 	cd nerv; $(PREFIX)/bin/luarocks make
 speech:
+	cd speech/speech_utils; $(PREFIX)/bin/luarocks make
 	cd speech/htk_io; $(PREFIX)/bin/luarocks make
 clean:
 	cd nerv && make clean

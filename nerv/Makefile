@@ -66,7 +66,7 @@ $(LIB_PATH)/libluaT.so: $(LUAT_OBJS)
 $(INST_LIBDIR)/libnerv.so: $(NERV_OBJS) $(LIB_PATH)/libnervcore.so $(LIB_PATH)/libluaT.so
 	gcc -shared -o $@ $(NERV_OBJS) $(LDFLAGS) -Wl,-rpath=$(LIB_PATH) -L$(LIB_PATH) -lnervcore -lluaT
 
-$(OBJ_DIR)/matrix/cumatrix.o: matrix/generic/cumatrix.c matrix/generic/matrix.c matrix/generic/cukernel.cu
+$(OBJ_DIR)/matrix/cumatrix.o: matrix/generic/cumatrix.c matrix/generic/matrix.c
 $(OBJ_DIR)/matrix/mmatrix.o: matrix/generic/mmatrix.c matrix/generic/matrix.c
 
 $(OBJ_DIR)/lib/matrix/cumatrix.o: lib/matrix/generic/cumatrix.c lib/matrix/generic/matrix.c lib/matrix/generic/cukernel.cu
