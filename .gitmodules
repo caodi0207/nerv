@@ -1,7 +1,7 @@
 [submodule "luajit-2.0"]
 	path = luajit-2.0
 	url = http://luajit.org/git/luajit-2.0.git
-[submodule "nerv-speech"]
+[submodule "speech"]
 	path = nerv-speech
 	url = https://github.com/Nerv-SJTU/nerv-speech.git
 [submodule "luarocks"]
