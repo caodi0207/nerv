@@ -10,7 +10,8 @@ __Nerv__ is currently developed via github.You can download and make __Nerv__ by
 cd ~
 git clone https://github.com/Nerv-SJTU/nerv.git
 cd nerv
-git clone https://github.com/Nerv-SJTU/nerv-speech.git
+git clone https://github.com/Nerv-SJTU/nerv-speech.git speech
+git submodule init && git submodule update
 make
 ```
 The `git submodule` command is for the __luajit__ repository inside __Nerv__.  
