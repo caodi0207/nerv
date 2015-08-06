@@ -8,9 +8,9 @@ First make sure you have __lua__ and __CUDA__ installed on your computer.
 __Nerv__ is currently developed via github.You can download and make __Nerv__ by doing the following:
 ```
 cd ~
-git clone https://github.com/Determinant/nerv.git
+git clone https://github.com/Nerv-SJTU/nerv.git
 cd nerv
-git submodule init && git submodule update
+git clone https://github.com/Nerv-SJTU/nerv-speech.git
 make
 ```
 The `git submodule` command is for the __luajit__ repository inside __Nerv__.  
