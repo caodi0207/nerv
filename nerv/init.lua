@@ -1,15 +1,19 @@
 require 'libnerv'
 
-function nerv.error(fmt, ...)
-    error("[nerv] internal error: " .. fmt .. "\n", ...)
-end
-
 function nerv.error_method_not_implemented()
     nerv.error("method not implemented");
 end
 
+function nerv.sprintf(fmt, ...)
+    return string.format(fmt, ...)
+end
+
 function nerv.printf(fmt, ...)
-    io.write(string.format(fmt, ...))
+    io.write(nerv.sprintf(fmt, ...))
+end
+
+function nerv.error(fmt, ...)
+    error(nerv.sprintf("[nerv] internal error: " .. fmt .. "\n", ...))
 end
 
 function nerv.mesg_with_timestamp(fmt, ...)
