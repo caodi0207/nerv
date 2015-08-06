@@ -1,8 +1,7 @@
 function build_trainer(ifname)
     local param_repo = nerv.ParamRepo()
     param_repo:import(ifname, nil, gconf)
-    local sublayer_repo = make_sublayer_repo(param_repo)
-    local layer_repo = make_layer_repo(sublayer_repo, param_repo)
+    local layer_repo = make_layer_repo(param_repo)
     local network = get_network(layer_repo)
     local input_order = get_input_order()
     local iterative_trainer = function (prefix, scp_file, bp)
@@ -18,7 +17,7 @@ function build_trainer(ifname)
             -- prine stat periodically
             gconf.cnt = gconf.cnt + 1
             if gconf.cnt == 1000 then
-                print_stat(sublayer_repo)
+                print_stat(layer_repo)
                 nerv.CuMatrix.print_profile()
                 nerv.CuMatrix.clear_profile()
                 gconf.cnt = 0
@@ -42,16 +41,16 @@ function build_trainer(ifname)
             -- collect garbage in-time to save GPU memory
             collectgarbage("collect")
         end
-        print_stat(sublayer_repo)
+        print_stat(layer_repo)
         nerv.CuMatrix.print_profile()
         nerv.CuMatrix.clear_profile()
         if (not bp) and prefix ~= nil then
             nerv.info("writing back...")
             local fname = string.format("%s_cv%.3f.nerv",
-                            prefix, get_accuracy(sublayer_repo))
+                            prefix, get_accuracy(layer_repo))
             network:get_params():export(fname, nil)
         end
-        return get_accuracy(sublayer_repo)
+        return get_accuracy(layer_repo)
     end
     return iterative_trainer
 end

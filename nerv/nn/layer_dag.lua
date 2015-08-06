@@ -112,7 +112,7 @@ function DAGLayer:__init(id, global_conf, layer_conf)
         end
     end
     for i = 1, #queue do
-        nerv.info("enqueued layer: %s", queue[i].layer.id)
+        nerv.info("enqueued layer: %s %s", queue[i].layer, queue[i].layer.id)
     end
 
     for id, ref in pairs(layers) do
@@ -125,6 +125,7 @@ function DAGLayer:__init(id, global_conf, layer_conf)
     self.layers = layers
     self.inputs = inputs
     self.outputs = outputs
+    self.id = id
     self.dim_in = dim_in
     self.dim_out = dim_out
     self.parsed_conn = parsed_conn

@@ -1,7 +1,12 @@
 local LayerRepo = nerv.class("nerv.LayerRepo")
 
 function LayerRepo:__init(layer_spec, param_repo, global_conf)
-    local layers = {}
+    self.layers = {}
+    self:add_layers(layer_spec, param_repo, global_conf)
+end
+
+function LayerRepo:add_layers(layer_spec, param_repo, global_conf)
+    local layers = self.layers
     for ltype, llist in pairs(layer_spec) do
         local layer_type = nerv.get_type(ltype)
         for id, spec in pairs(llist) do
@@ -22,7 +27,6 @@ function LayerRepo:__init(layer_spec, param_repo, global_conf)
             layers[id] = layer_type(id, global_conf, layer_config)
         end
     end
-    self.layers = layers
 end
 
 function LayerRepo:get_layer(lid)

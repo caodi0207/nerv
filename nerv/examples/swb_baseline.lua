@@ -10,8 +10,8 @@ gconf = {lrate = 0.8, wcost = 1e-6, momentum = 0.9,
                 "/slfs1/users/mfy43/swb_global_transf.nerv"},
         debug = false}
 
-function make_sublayer_repo(param_repo)
-    return nerv.LayerRepo(
+function make_layer_repo(param_repo)
+    local layer_repo = nerv.LayerRepo(
     {
         -- global transf
         ["nerv.BiasLayer"] =
@@ -54,21 +54,23 @@ function make_sublayer_repo(param_repo)
             sigmoid5 = {{}, {dim_in = {2048}, dim_out = {2048}}},
             sigmoid6 = {{}, {dim_in = {2048}, dim_out = {2048}}}
         },
-        ["nerv.SoftmaxCELayer"] =
+        ["nerv.SoftmaxCELayer"] = -- softmax + ce criterion layer for finetune output
         {
             ce_crit = {{}, {dim_in = {3001, 1}, dim_out = {1}, compressed = true}}
+        },
+        ["nerv.SoftmaxLayer"] = -- softmax for decode output
+        {
+            softmax = {{}, {dim_in = {3001}, dim_out = {3001}}}
         }
     }, param_repo, gconf)
-end
 
-function make_layer_repo(sublayer_repo, param_repo)
-    return nerv.LayerRepo(
+    layer_repo:add_layers(
     {
         ["nerv.DAGLayer"] =
         {
             global_transf = {{}, {
                 dim_in = {429}, dim_out = {429},
-                sub_layers = sublayer_repo,
+                sub_layers = layer_repo,
                 connections = {
                     ["<input>[1]"] = "blayer1[1]",
                     ["blayer1[1]"] = "wlayer1[1]",
@@ -78,8 +80,8 @@ function make_layer_repo(sublayer_repo, param_repo)
                 }
             }},
             main = {{}, {
-                dim_in = {429, 1}, dim_out = {1},
-                sub_layers = sublayer_repo,
+                dim_in = {429}, dim_out = {3001},
+                sub_layers = layer_repo,
                 connections = {
                     ["<input>[1]"] = "affine0[1]",
                     ["affine0[1]"] = "sigmoid0[1]",
@@ -96,17 +98,51 @@ function make_layer_repo(sublayer_repo, param_repo)
                     ["sigmoid5[1]"] = "affine6[1]",
                     ["affine6[1]"] = "sigmoid6[1]",
                     ["sigmoid6[1]"] = "affine7[1]",
-                    ["affine7[1]"] = "ce_crit[1]",
-                    ["<input>[2]"] = "ce_crit[2]",
-                    ["ce_crit[1]"] = "<output>[1]"
+                    ["affine7[1]"] = "<output>[1]"
                 }
             }}
         }
     }, param_repo, gconf)
+
+    layer_repo:add_layers(
+    {
+        ["nerv.DAGLayer"] =
+        {
+            ce_output = {{}, {
+                dim_in = {429, 1}, dim_out = {1},
+                sub_layers = layer_repo,
+                connections = {
+                    ["<input>[1]"] = "main[1]",
+                    ["main[1]"] = "ce_crit[1]",
+                    ["<input>[2]"] = "ce_crit[2]",
+                    ["ce_crit[1]"] = "<output>[1]"
+                }
+            }},
+            softmax_output = {{}, {
+                dim_in = {429}, dim_out = {3001},
+                sub_layers = layer_repo,
+                connections = {
+                    ["<input>[1]"] = "main[1]",
+                    ["main[1]"] = "softmax[1]",
+                    ["softmax[1]"] = "<output>[1]"
+                }
+            }}
+        }
+    }, param_repo, gconf)
+
+    return layer_repo
 end
 
 function get_network(layer_repo)
-    return layer_repo:get_layer("main")
+    return layer_repo:get_layer("ce_output")
+end
+
+function get_decode_network(layer_repo)
+    return layer_repo:get_layer("softmax_output")
+end
+
+function get_global_transf(layer_repo)
+    return layer_repo:get_layer("global_transf")
 end
 
 function make_readers(scp_file, layer_repo)
@@ -145,18 +181,18 @@ function get_input_order()
     return {"main_scp", "phone_state"}
 end
 
-function get_accuracy(sublayer_repo)
-    local ce_crit = sublayer_repo:get_layer("ce_crit")
+function get_accuracy(layer_repo)
+    local ce_crit = layer_repo:get_layer("ce_crit")
     return ce_crit.total_correct / ce_crit.total_frames * 100
 end
 
-function print_stat(sublayer_repo)
-    local ce_crit = sublayer_repo:get_layer("ce_crit")
+function print_stat(layer_repo)
+    local ce_crit = layer_repo:get_layer("ce_crit")
     nerv.info("*** training stat begin ***")
     nerv.printf("cross entropy:\t\t%.8f\n", ce_crit.total_ce)
     nerv.printf("correct:\t\t%d\n", ce_crit.total_correct)
     nerv.printf("frames:\t\t\t%d\n", ce_crit.total_frames)
     nerv.printf("err/frm:\t\t%.8f\n", ce_crit.total_ce / ce_crit.total_frames)
-    nerv.printf("accuracy:\t\t%.3f%%\n", get_accuracy(sublayer_repo))
+    nerv.printf("accuracy:\t\t%.3f%%\n", get_accuracy(layer_repo))
     nerv.info("*** training stat end ***")
 end

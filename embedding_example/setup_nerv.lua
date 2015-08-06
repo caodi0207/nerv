@@ -4,9 +4,8 @@ local arg = {...}
 dofile(arg[1])
 local param_repo = nerv.ParamRepo()
 param_repo:import(gconf.initialized_param, nil, gconf)
-local sublayer_repo = make_sublayer_repo(param_repo)
-local layer_repo = make_layer_repo(sublayer_repo, param_repo)
-local network = get_network(layer_repo)
+local layer_repo = make_layer_repo(param_repo)
+local network = get_decode_network(layer_repo)
 local global_transf = get_global_transf(layer_repo)
 local batch_size = 1
 network:init(batch_size)

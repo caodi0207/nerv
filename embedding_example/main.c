@@ -22,7 +22,7 @@ void setup_nerv() {
     luaL_openlibs(L);
     luaL_loadfile(L, "setup_nerv.lua");
     /* network configuration */
-    lua_pushstring(L, "swb_baseline_decode.lua");
+    lua_pushstring(L, "../nerv/examples/swb_baseline.lua");
     if (lua_pcall(L, 1, LUA_MULTRET, 0))
     {
         printf("%s\n", luaL_checkstring(L, 1));
